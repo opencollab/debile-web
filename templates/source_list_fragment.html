@@ -6,27 +6,27 @@
             <th>Status</th>
         </tr>
 {% for source in sources %}
-{% with owner = source.get_owner() %}
+{% with owner = source.user %}
         <tr>
             <td>
-                <a href = '/source/{{source._id}}' >
-                    {{source.source}}/{{source.version}}
+                <a href = '/source/{{source.package_id}}' >
+                    {{source.name}}/{{source.version}}
                 </a>
             </td>
             <td>
                 {% if source.group %}
                 <a href = '/group/{{source.group}}' >
-                    {{source.group}}
+                    {{source.group.name}}
                 </a>
                 {% endif %}
             </td>
             <td>
-                <a href = '/hacker/{{owner._id}}' >
+                <a href = '/hacker/{{owner.id}}' >
                     {{owner.name}}
                 </a>
             </td>
             <td>
-            {% for jerb in source.get_all_jobs() %}
+            {% for jerb in source.jobs %}
                 {% if jerb.is_pending() %}
                     {% if jerb.builder %}
                         ⧖

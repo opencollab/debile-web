@@ -14,13 +14,13 @@
             <td>{{job.suite}}</td>
             <td>{{job.assigned_at|ago}}</td>
             <td>
-                {% if job.builder %}
-                    <a href = '/machine/{{job.builder}}' >{{job.builder}}</a>
+                {% if job.machine %}
+                    <a href = '/machine/{{job.machine}}' >{{job.machine.name}}</a>
                 {% endif %}
             </td>
             <td>
-                {% with package = job.get_source() %}
-                    <a href = '/source/{{package._id}}' >{{package.source}}</a>
+                {% with package = job.package %}
+                    <a href = '/source/{{package.package_id}}' >{{package.name}}</a>
                 {% endwith %}
             </td>
         </tr>
