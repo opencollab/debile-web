@@ -19,9 +19,10 @@
 # DEALINGS IN THE SOFTWARE.
 
 from flask import Blueprint, render_template, send_file
-from lucy import Source, Report, Machine, User, Job
-from lucy.core import get_config
-from fred import db as fred_db
+from sqlalchemy.orm import joinedload
+from lucy.orm import Package, Source, Binary, Machine, User, Job, Group
+from lucy.config import Config
+from lucy.server import Session
 
 from humanize import naturaltime
 from humanize.time import naturaldelta
@@ -65,19 +66,23 @@ def location_display(obj):
 
 @frontend.route("/")
 def index():
-    active_jobs = Job.unfinished_jobs()
-    pending = fred_db.builds.find()
+    session = Session()
+    active_jobs = session.query(Job).filter(Job.machine != None).filter(Job.finished_at == None).all()
+    machines = session.query(Machine).options(joinedload('jobs')).all()
+    # TODO : Disable fred builds query for now
+    #pending = fred_db.builds.find()
     return render_template('about.html', **{
         "active_jobs": active_jobs,
-        "machines": Machine.get_builders(),
-        "fred_builds": pending,
+        "machines": machines,
     })
 
 
 @frontend.route("/sources/")
 def source_list():
-    count = 10
-    sources = Source.query({}, sort='updated_at', sort_order=-1, limit=count)
+    session = Session()
+    count = 1
+    sources = session.query(Source).options(joinedload(Source.user)).options(joinedload(Source.jobs)).options(joinedload(Source.group)).order_by(Source.updated_at.desc()).limit(count)
+
     return render_template('source_list.html', **{
         "sources": sources,
         "count": count,
@@ -88,14 +93,10 @@ def source_list():
 @frontend.route("/group/<group_id>/<page>/")
 def group_list(group_id, page=0):
     page = int(page)
-
-    sources = Source.query(
-        { "group": group_id, },
-        sort='updated_at',
-        sort_order=1,
-        page_count=15,
-        page=page
-    )
+	# FIXME : unsafe code, catch exceptions
+    session = Session()
+    g = session.query(Group).filter(Group.name == group_id).one()
+    sources = session.query(Source).filter(Source.group == g).order_by(Source.updated_at.asc()).paginate(page, per_page=15)
 
     return render_template('group.html', **{
         "sources": sources,
@@ -106,38 +107,47 @@ def group_list(group_id, page=0):
 
 @frontend.route("/source/<package_id>/")
 def source(package_id):
-    package = Source.load(package_id)
+    session = Session()
+    # FIXME : unsafe code, catch exceptions
+    package = session.query(Source).filter(Source.package_id == package_id).one()
+    total = session.query(Job).filter(Job.package == package).count()
+    unfinished = session.query(Job).filter(Job.package == package).filter(Job.finished_at == None).count()
     return render_template('source.html', **{
-        "package": package
+        "package": package,
+        "package_job_status" : (total, unfinished)
     })
 
 
 @frontend.route("/machine/<machine_id>/")
 def machine(machine_id):
-    machine = Machine.load(machine_id)
+    session = Session()
+    # FIXME : unsafe code, catch exceptions
+    machine = session.query(Machine).filter(Machine.id == machine_id).one()
     return render_template('machine.html', **{
-        "machine": machine,
-        "owner": machine.get_owner()
+        "machine": machine
     })
 
 
 @frontend.route("/hacker/<hacker_id>/")
 def hacker(hacker_id):
-    user = User.load(hacker_id)
+    session = Session()
+	# FIXME : unsafe code, catch exceptions
+    user = session.query(User).filter(User.id == user_id).one()
     return render_template('hacker.html', **{
         "hacker": user
     })
 
 
-@frontend.route("/report/<report_id>/")
-def report(report_id):
-    report = Report.load(report_id)
-    config = get_config()
-    log_path = os.path.join(config['pool'],
-                        report['log_path'])
+@frontend.route("/report/<job_id>/")
+def report(job_id):
+# TODO : design architecture Pending, firewose ?
+#    report = Report.load(report_id)
+    config = Config()
+    log_path = os.path.join(config.get('paths', 'job'),
+                        job_id, 'log')
 
-    flink = "/report/firehose/%s/" % report_id
-    loglink = "/report/log/%s/" % report_id
+    flink = "/report/firehose/%s/" % job_id
+    loglink = "/report/log/%s/" % job_id
 
     log = []
     if os.path.exists(log_path):
@@ -146,26 +156,23 @@ def report(report_id):
     return render_template('report.html', **{
         "log_link": loglink,
         "firehose_link": flink,
-        "report": report,
         "log": log,
     })
 
-@frontend.route("/report/firehose/<report_id>/")
-def report_firehose(report_id):
-    report = Report.load(report_id)
-    config = get_config()
-    firehose_path = os.path.join(config['pool'],
-                        report['firehose_path'])
+@frontend.route("/report/firehose/<job_id>/")
+def report_firehose(job_id):
+    config = Config()
+    firehose_path = os.path.join(config.get('paths', 'job'),
+                        job_id, 'firehose.xml')
 
     if os.path.exists(firehose_path):
         return send_file(firehose_path, mimetype='application/xml', as_attachment=True, attachment_filename='firehose.xml')
 
-@frontend.route("/report/log/<report_id>/")
-def report_log(report_id):
-    report = Report.load(report_id)
-    config = get_config()
-    log_path = os.path.join(config['pool'],
-                        report['log_path'])
+@frontend.route("/report/log/<job_id>/")
+def report_log(job_id):
+    config = Config()
+    log_path = os.path.join(config.get('paths', 'job'),
+                        job_id, 'log')
 
     if os.path.exists(log_path):
         return send_file(log_path, mimetype='text/plain', as_attachment=True, attachment_filename='log.txt')

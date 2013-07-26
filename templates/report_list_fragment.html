@@ -5,24 +5,18 @@
             <th>Builder</th>
             <th>Issues</th>
         </tr>
-{% for report in reports %}
+{% for job in joblist %}
         <tr>
             <td>
-                <a href = '/report/{{report._id}}' >{{report.type}}</a>
+                <a href = '/report/{{job.id}}' >{{job.type}}</a>
             </td>
+            <td>TODO</td>
             <td>
-                {% if report.failed %}
-Failed
-                {% else %}
-Passed
+                {% if job.machine %}
+                <a href = '/machine/{{job.machine}}' >{{job.machine.name}}</a>
                 {% endif %}
             </td>
-            <td>
-                {% if report.builder %}
-                <a href = '/machine/{{report.builder}}' >{{report.builder}}</a>
-                {% endif %}
-            </td>
-            <td>{{report.report.results|length}}</td>
+            <td>TODO</td>
         </tr>
 {% endfor %}
     </table>

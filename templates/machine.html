@@ -3,10 +3,9 @@
 {% block title %}Machine{% endblock %}
 
 {% block content %}
-<h1>{{machine._id}}</h1>
+<h1>{{machine.name}}</h1>
 
-This machine is owned by
-<a href = '/hacker/{{machine.owner}}' >{{owner.name}}</a>. The full GPG
-fingerprint of this buildd is <code>{{machine.gpg}}</code>. This machine
+The full GPG
+fingerprint of this buildd is <code>{{machine.gpg_fingerprint}}</code>. This machine
 last hit us authenticated {{machine.last_ping|ago}}.
 {% endblock %}

@@ -4,7 +4,7 @@
 
 {% block content %}
 
-{% with total, unfinished = package.get_job_status() %}
+{% with total, unfinished = package_job_status %}
     <div class = 'box' >
         <div class = 'unfinished' >
             {{unfinished}}<span class = 'total' >/{{total}}</span>
@@ -20,19 +20,19 @@
     complete reports, pending jobs and completed binary builds.
 
     <h3>source</h3>
-{% with reports = package.get_reports() %}
+{% with joblist = package.jobs %}
     {% include "report_list_fragment.html" %}
 {% endwith %}
 
-{% for binary in package.get_binaries() %}
+{% for binary in package.binaries %}
     <h3>{{binary.arch}}</h3>
-    {% with reports = binary.get_reports() %}
+    {% with reports = binary.jobs %}
         {% include "report_list_fragment.html" %}
     {% endwith %}
 {% endfor %}
 
     <h2>Pending Jobs</h2>
-    {% with jobs = package.get_pending_jobs() %}
+    {% with jobs = pending_jobs %}
         {% include "job_list_fragment.html" %}
     {% endwith %}
 {% endblock %}
