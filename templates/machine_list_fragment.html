@@ -6,7 +6,7 @@
         </tr>
 {% for machine in machines %}
         <tr>
-            <td><a href = '/machine/{{machine.id}}' >{{machine.name}}</a></td>
+            <td><a href = '/machine/{{machine.name}}' >{{machine.name}}</a></td>
             <td>{{machine.last_ping|ago}}</td>
             <td>
                 {% for job in machine.jobs%}

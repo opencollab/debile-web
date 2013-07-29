@@ -118,11 +118,11 @@ def source(package_id):
     })
 
 
-@frontend.route("/machine/<machine_id>/")
-def machine(machine_id):
+@frontend.route("/machine/<machine_name>/")
+def machine(machine_name):
     session = Session()
     # FIXME : unsafe code, catch exceptions
-    machine = session.query(Machine).filter(Machine.id == machine_id).one()
+    machine = session.query(Machine).filter(Machine.name == machine_name).one()
     return render_template('machine.html', **{
         "machine": machine
     })
