@@ -114,7 +114,7 @@ def source(package_name, owner_name='fred', package_version='latest', run_number
 
     # Let's compute all the versions that exists for this package
     versions_query = session.query(Source.version)\
-        .filter(Source.package_name == package_name)\
+        .filter(Source.name == package_name)\
         .filter(Source.user.login == owner_name)
     versions = sorted(set(versions_query.all()))
 
