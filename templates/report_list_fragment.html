@@ -1,19 +1,18 @@
     <table class = 'zebra'>
         <tr>
-            <th>What</th>
+            <th>Type</th>
             <th>Status</th>
-            <th>Builder</th>
-            <th>Issues</th>
+            <th>Results</th>
         </tr>
-{% for job in joblist %}
-        <tr>
+{% for jobinfo in jobinfolist %}
+        <tr class='job {{jobinfo.status}}'>
             <td>
-                <a href = '/report/{{job.id}}' >{{job.type}}</a>
+                <a href = '{{jobinfo.job_link}}' >{{jobinfo.job.type}}</a>
             </td>
-            <td>TODO</td>
+            <td>{{jobinfo.status}}</td>
             <td>
-                {% if job.machine %}
-                <a href = '/machine/{{job.machine}}' >{{job.machine.name}}</a>
+                {% if jobinfo.job.machine %}
+                <a href = '{{jobinfo.job_machine_link}}' >{{job.machine.name}}</a>
                 {% endif %}
             </td>
             <td>TODO</td>

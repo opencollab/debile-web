@@ -105,16 +105,148 @@ def group_list(group_id, page=0):
     })
 
 
-@frontend.route("/source/<package_id>/")
-def source(package_id):
+@frontend.route("/source/<package_name>")
+@frontend.route("/source/<package_name>/<package_version>")
+@frontend.route("/source/<owner_name>/<package_name>/<package_version>")
+@frontend.route("/source/<owner_name>/<package_name>/<package_version>/<run_number>")
+def source(package_name, owner_name='fred', package_version='latest', run_number='0'):
     session = Session()
-    # FIXME : unsafe code, catch exceptions
-    package = session.query(Source).filter(Source.package_id == package_id).one()
-    total = session.query(Job).filter(Job.package == package).count()
-    unfinished = session.query(Job).filter(Job.package == package).filter(Job.finished_at == None).count()
+
+    # Let's compute all the versions that exists for this package
+    versions_query = session.query(Source.version)\
+        .filter(Source.package_name == package_name)\
+        .filter(Source.user.login == owner_name)
+    versions = sorted(set(versions_query.all()))
+
+    latest_version = versions[-1]
+    if package_version == 'latest':
+        this_version = latest_version
+    else:
+        this_version = package_version
+
+    # All runs that exist for this version
+    runs_query = session.query(Source.run)\
+        .filter(Source.package_name == package_name)\
+        .filter(Source.user.login == owner_name)\
+        .filter(Source.version == this_version)\
+        .order_by(Source.run.asc())
+    runs = runs_query.all()
+
+    latest_run = runs[-1]
+    if run_number == '0':
+        this_run = latest_run
+    else:
+        this_run = run_number
+
+    # Join load the user to show details about the source owner
+    package_query = session.query(Source)\
+        .options(joinedload('user'))\
+        .options(joinedload('jobs'))\
+        .options(joinedload('binaries'))\
+        .filter(Source.package_id == package_id)\
+        .filter(Source.user.login == owner_name)\
+        .filter(Source.version == this_version)\
+        .filter(Source.run == this_run)
+
+    try:
+        package = package_query.one()
+    except (NoResultFound, MultipleResultsFound):
+        raise Exception("This resource does not exist")
+
+    # Compute description section
+    desc = {}
+    desc['user_link'] = "/hacker/%s" % user.login
+    # desc['pool_link'] =
+
+    # Fill in the run sections if need be
+    # Remember that multiple runs cannot exist with fred auto-build
+    if len(runs) > 1:
+        multiple_runs = True
+    else:
+        multiple_runs = False
+    runs_info = []
+    if multiple_runs:
+        for r in runs_query:
+            href = "/sources/%s/%s/%s/%s" % (owner_name, package_name, package_version, run_number)
+            runs_info.append((r, href))
+
+    # Fill in the version sections
+    if len(versions) > 1:
+        multiple_versions = True
+    else:
+        multiple_versions = False
+    versions_info = []
+    if multiple_versions:
+        for v in versions:
+            if owner_name == 'fred':
+                href = "/sources/%s/%s" % (package_name, v)
+            else:
+                href = "/sources/%s/%s/%s" % (owner_name, package_name, v)
+            versions_info.append((v, href))
+
+    # Compute infos to display the job parts
+    # Iterate through all jobs
+    # Job total counters + compute some links
+    source_jobs = session.query(Job)\
+        .option(joinedload('machine'))\
+        .filter(Job.package == package)\
+        .all()
+
+    total = len(source_jobs)
+    unfinished = 0
+    source_jobs_info = []
+    for j in source_jobs:
+        info = {}
+        info['job'] = j
+        info['job_link'] = '/job/%s' % j.id
+        if j.machine:
+            info['job_machine_link'] = '/machine/%s' % j.machine.name
+        if not j.is_finished():
+            unfinished += 1
+            if j.machine:
+                info['status'] = 'running'
+            else:
+                info['status'] = 'pending'
+        else:
+            info['status'] = 'finished'
+
+        source_jobs_info.append(info)
+
+    binaries_jobs = session.query(Job)\
+        .option(joinedload('package'))\
+        .option(joinedload('machine'))\
+        .filter(Job.package.in_(package.binaries))\
+        .all()
+
+    binaries_jobs_info = []
+    for j in binaries_jobs:
+        info = {}
+        info['job'] = j
+        info['job_link'] = '/job/%s' % j.id
+        if j.machine:
+            info['job_machine_link'] = '/machine/%s' % j.machine.name
+        if not j.is_finished():
+            unfinished += 1
+            if j.machine:
+                info['status'] = 'running'
+            else:
+                info['status'] = 'pending'
+        else:
+            info['status'] = 'finished'
+            binaries_jobs_info.append(info)
+
     return render_template('source.html', **{
+        "desc": desc,
+        "multiple_runs": multiple_runs,
+        "runs_info": runs_info,
+        "latest_run": latest_run,
+        "multiple_versions": multiple_versions,
+        "latest_version": latest_version,
+        "versions_info": versions_info,
         "package": package,
-        "package_job_status" : (total, unfinished)
+        "package_job_status" : (total, unfinished),
+        "source_jobs_info": source_jobs_info,
+        "binaries_jobs_info": binaries_jobs_info
     })
 
 
