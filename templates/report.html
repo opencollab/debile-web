@@ -1,10 +1,34 @@
 {% extends "base.html" %}
 
-{% block title %}About{% endblock %}
+{% block title %}Report for job {{job_info.job.uuid}}{% endblock %}
 
 {% block content %}
-
-<p>Download : <a href="{{firehose_link}}">XML firehose report</a> | <a href="{{log_link}}">raw log</a></p>
+    <div class='block'>
+		<h3>Job info</h3>
+        <div class='desc_line'>
+            <div class='desc_key'>type</div>
+            <div class='desc_value'>{{job_info.job.type}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>builder</div>
+            <div class='desc_value'><a href='{{job_info.machine_link}}'>{{job_info.job.machine.name}}</a></div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>source package</div>
+            <div class='desc_value'><a href='{{job_info.package_link}}'>{{job.package.name}} {{job.package.version}}</a></div>
+        </div>
+    </div>
+    <div class='block'>
+		<h3>Downloads</h3>
+        <div class='desc_line'>
+            <div class='desc_key'>job log</div>
+            <div class='desc_value'><a href='{{log_link}}'>text_format</a></div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>firehose report</div>
+            <div class='desc_value'><a href='{{firehose_link}}'>XML_format</a></div>
+        </div>
+    </div>
 
 <h1>Full Log</h1>
 <pre>

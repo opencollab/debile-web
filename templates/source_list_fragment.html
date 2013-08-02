@@ -5,28 +5,27 @@
             <th>Uploader</th>
             <th>Status</th>
         </tr>
-{% for source in sources %}
-{% with owner = source.user %}
+{% for info in sources_info %}
         <tr>
             <td>
-                <a href = '/source/{{source.package_id}}' >
-                    {{source.name}}/{{source.version}}
+                <a href = '{{info.source_link}}' >
+                    {{info.source.name}}/{{info.source.version}} - run {{info.source.run}}
                 </a>
             </td>
             <td>
-                {% if source.group %}
-                <a href = '/group/{{source.group}}' >
-                    {{source.group.name}}
+                {% if info.source.group %}
+                <a href = '{{info.group_link}}' >
+                    {{info.source.group.name}}
                 </a>
                 {% endif %}
             </td>
             <td>
-                <a href = '/hacker/{{owner.id}}' >
-                    {{owner.name}}
+                <a href = '{{info.user_link}}' >
+                    {{info.source.user.name}}
                 </a>
             </td>
             <td>
-            {% for jerb in source.jobs %}
+            {% for jerb in info.source.jobs %}
                 {% if jerb.is_pending() %}
                     {% if jerb.builder %}
                         ⧖
@@ -47,6 +46,5 @@
             {% endfor %}
             </td>
         </tr>
-{% endwith %}
 {% endfor %}
     </table>

@@ -80,11 +80,24 @@ def index():
 @frontend.route("/sources/")
 def source_list():
     session = Session()
-    count = 1
-    sources = session.query(Source).options(joinedload(Source.user)).options(joinedload(Source.jobs)).options(joinedload(Source.group)).order_by(Source.updated_at.desc()).limit(count)
+    count = 10
+    sources = session.query(Source)\
+        .options(joinedload(Source.user))\
+        .options(joinedload(Source.group))\
+        .order_by(Source.updated_at.desc())\
+        .limit(count)
+    sources_info = []
+    for s in sources:
+        info = {}
+        info['source'] = s
+        info['source_link'] = "/source/%s/%s/%s/%s" % (s.user.login, s.name, s.version, s.run)
+        info['group_link'] = "/group/%s" % s.group.name
+        info['user_link'] = "/hacker/%s" % s.user.login
+        sources_info.append(info)
+
 
     return render_template('source_list.html', **{
-        "sources": sources,
+        "sources_info": sources_info,
         "count": count,
     })
 
@@ -105,19 +118,18 @@ def group_list(group_id, page=0):
     })
 
 
-@frontend.route("/source/<package_name>")
-@frontend.route("/source/<package_name>/<package_version>")
-@frontend.route("/source/<owner_name>/<package_name>/<package_version>")
-@frontend.route("/source/<owner_name>/<package_name>/<package_version>/<run_number>")
-def source(package_name, owner_name='fred', package_version='latest', run_number='0'):
+@frontend.route("/source/<owner_name>/<package_name>/<package_version>/<int:run_number>")
+def source(package_name, owner_name, package_version, run_number):
     session = Session()
 
     # Let's compute all the versions that exists for this package
     versions_query = session.query(Source.version)\
+	    .join(Source.user)\
         .filter(Source.name == package_name)\
-        .filter(Source.user.login == owner_name)
-    versions = sorted(set(versions_query.all()))
+        .filter(User.login == owner_name)
+    versions = sorted(set([e[0] for e in versions_query.all()]))
 
+    print versions
     latest_version = versions[-1]
     if package_version == 'latest':
         this_version = latest_version
@@ -126,12 +138,14 @@ def source(package_name, owner_name='fred', package_version='latest', run_number
 
     # All runs that exist for this version
     runs_query = session.query(Source.run)\
-        .filter(Source.package_name == package_name)\
-        .filter(Source.user.login == owner_name)\
+	    .join(Source.user)\
+        .filter(Source.name == package_name)\
+        .filter(User.login == owner_name)\
         .filter(Source.version == this_version)\
         .order_by(Source.run.asc())
-    runs = runs_query.all()
+    runs = [e[0] for e in runs_query.all()]
 
+    print runs
     latest_run = runs[-1]
     if run_number == '0':
         this_run = latest_run
@@ -143,8 +157,8 @@ def source(package_name, owner_name='fred', package_version='latest', run_number
         .options(joinedload('user'))\
         .options(joinedload('jobs'))\
         .options(joinedload('binaries'))\
-        .filter(Source.package_id == package_id)\
-        .filter(Source.user.login == owner_name)\
+        .filter(Source.name == package_name)\
+        .filter(User.login == owner_name)\
         .filter(Source.version == this_version)\
         .filter(Source.run == this_run)
 
@@ -155,7 +169,8 @@ def source(package_name, owner_name='fred', package_version='latest', run_number
 
     # Compute description section
     desc = {}
-    desc['user_link'] = "/hacker/%s" % user.login
+    desc['user_link'] = "/hacker/%s" % package.user.login
+    desc['run'] = run_number
     # desc['pool_link'] =
 
     # Fill in the run sections if need be
@@ -166,8 +181,8 @@ def source(package_name, owner_name='fred', package_version='latest', run_number
         multiple_runs = False
     runs_info = []
     if multiple_runs:
-        for r in runs_query:
-            href = "/sources/%s/%s/%s/%s" % (owner_name, package_name, package_version, run_number)
+        for r in runs:
+            href = "/source/%s/%s/%s/%s" % (owner_name, package_name, package_version, r)
             runs_info.append((r, href))
 
     # Fill in the version sections
@@ -188,7 +203,7 @@ def source(package_name, owner_name='fred', package_version='latest', run_number
     # Iterate through all jobs
     # Job total counters + compute some links
     source_jobs = session.query(Job)\
-        .option(joinedload('machine'))\
+        .options(joinedload('machine'))\
         .filter(Job.package == package)\
         .all()
 
@@ -198,31 +213,31 @@ def source(package_name, owner_name='fred', package_version='latest', run_number
     for j in source_jobs:
         info = {}
         info['job'] = j
-        info['job_link'] = '/job/%s' % j.id
+        info['job_link'] = '/report/%s' % j.uuid
         if j.machine:
             info['job_machine_link'] = '/machine/%s' % j.machine.name
         if not j.is_finished():
             unfinished += 1
-            if j.machine:
-                info['status'] = 'running'
-            else:
+            if j.machine is None:
                 info['status'] = 'pending'
+            else:
+                info['status'] = 'running'
         else:
             info['status'] = 'finished'
 
         source_jobs_info.append(info)
 
     binaries_jobs = session.query(Job)\
-        .option(joinedload('package'))\
-        .option(joinedload('machine'))\
-        .filter(Job.package.in_(package.binaries))\
+        .options(joinedload('machine'))\
+        .join(Binary, Job.package_id == Binary.package_id)\
+        .filter(Binary.source_id == package.source_id)\
         .all()
 
     binaries_jobs_info = []
     for j in binaries_jobs:
         info = {}
         info['job'] = j
-        info['job_link'] = '/job/%s' % j.id
+        info['job_link'] = '/report/%s' % j.uuid
         if j.machine:
             info['job_machine_link'] = '/machine/%s' % j.machine.name
         if not j.is_finished():
@@ -270,11 +285,23 @@ def hacker(hacker_id):
     })
 
 
-@frontend.route("/report/<job_id>/")
-def report(job_id):
+@frontend.route("/report/<job_uuid>/")
+def report(job_uuid):
 # TODO : design architecture Pending, firewose ?
 #    report = Report.load(report_id)
     config = Config()
+    session = Session()
+    job_query = session.query(Job).filter(Job.uuid == job_uuid)
+    try:
+        job = job_query.one()
+    except (NoResultFound, MultipleResultsFound):
+        raise Exception("This resource does not exist")
+
+    job_info = {}
+    job_info['job'] = job
+    job_info['job_runtime'] = job.finished_at - job.assigned_at
+    job_info['package_link'] = '/source/%s/%s/%s/%s/' % (job.package.user.login, job.package.name, job.package.version, job.package.run)
+
     log_path = os.path.join(config.get('paths', 'job'),
                         job_id, 'log')
 
@@ -286,6 +313,7 @@ def report(job_id):
         log = (x.decode('utf-8') for x in open(log_path, 'r'))
 
     return render_template('report.html', **{
+        "job_info": job_info,
         "log_link": loglink,
         "firehose_link": flink,
         "log": log,

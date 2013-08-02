@@ -14,47 +14,51 @@
 {% endwith %}
 
 
-    <h1>Package Report</h1>
-    <div class='package_desc'>
-        <div class='package_desc_line'>
-            <div class='package_desc_key'>name</div>
-            <div class='package_desc_value'>{{package.name}}</div>
+    <div class='block'>
+		<h3>Package info</h3>
+        <div class='desc_line'>
+            <div class='desc_key'>name</div>
+            <div class='desc_value'>{{package.name}}</div>
         </div>
-        <div class='package_desc_line'>
-            <div class='package_desc_key'>version</div>
-            <div class='package_desc_value'>{{package.version}}</div>
+        <div class='desc_line'>
+            <div class='desc_key'>version</div>
+            <div class='desc_value'>{{package.version}}</div>
         </div>
-        <div class='package_desc_line'>
-            <div class='package_desc_key'>uploaded</div>
-            <div class='package_desc_value'>by <a href='{{user_link}}'>{{package.user.name}}</a></div>
-            {% endif %}
+        <div class='desc_line'>
+            <div class='desc_key'>uploaded by</div>
+            <div class='desc_value'><a href='{{desc.user_link}}'>{{package.user.name}}</a></div>
         </div>
     </div>
 
     {% if multiple_runs %}
+    <div class='block'>
     <h3>debuild.me runs</h3>
-    <div class='package_runs'>
         {% if latest_run == package.run %}
         This is the latest run of debuild.me available for this package, but you can access previous runs :
         {% else %}
         This package version has been processed multiple times, see other runs :
+        {% endif %}
         <div class='package_runs_menu'>
             {% for run, link in runs_info %}
-            <div class='package_runs_menu_element'>
+            <div class='package_runs_menu_element {% if desc.run == run %}current_run{% endif %}'>
                 <a href='{{link}}'>{{run}}{% if loop.last %} (latest){% endif %}</a>
             </div>
+			{% if not loop.last %} | {% endif %}
             {% endfor %}
         </div>
     </div>
     {% endif %}
 
     {% if multiple_versions %}
+    <div class='block'>
     <h3>Versions</h3>
-    <div class='package_versions'>
+	<p>
         {% if latest_version == package.version %}
         This is the latest version of debuild.me available for this package, but you can access previous versions :
         {% else %}
         This package has been processed for multiple versions, see others :
+        {% endif %}
+	</p>
         <div class='package_versions_menu'>
             {% for version, link in versions_info %}
             <div class='package_versions_menu_element'>
@@ -65,16 +69,24 @@
     </div>
     {% endif %}
 
+    <div class='block'>
     <h3>source jobs</h3>
     debuild.me launched these jobs on the source package provided
-{% with joblist = source_jobs_info %}
+{% with jobinfolist = source_jobs_info %}
+{% with emptymessage = 'Ahem, this is weird, there should be jobs here, call us...' %}
     {% include "report_list_fragment.html" %}
 {% endwith %}
+{% endwith %}
+    </div>
 
+    <div class='block'>
     <h3>binary jobs</h3>
     debuild.me launched these jobs on the binaries uploaded after the build of the source package
-{% with joblist = binaries_jobs_info %}
+{% with jobinfolist = binaries_jobs_info %}
+{% with emptymessage = 'No binary jobs yet, check the build jobs above.' %}
     {% include "report_list_fragment.html" %}
 {% endwith %}
+{% endwith %}
+    </div>
 
 {% endblock %}

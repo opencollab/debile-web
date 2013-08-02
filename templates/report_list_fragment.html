@@ -1,21 +1,35 @@
-    <table class = 'zebra'>
+    <table>
         <tr>
             <th>Type</th>
             <th>Status</th>
+            <th>Machine</th>
             <th>Results</th>
         </tr>
 {% for jobinfo in jobinfolist %}
         <tr class='job {{jobinfo.status}}'>
             <td>
-                <a href = '{{jobinfo.job_link}}' >{{jobinfo.job.type}}</a>
+				{% if jobinfo.job.is_finished() %}
+                <a href = '{{jobinfo.job_link}}' >{{jobinfo.job.type}}</a> <em>({{jobinfo.job.arch}})</em>
+				{% else %}
+				{{jobinfo.job.type}} <em>({{jobinfo.job.arch}})</em>
+				{% endif %}
             </td>
             <td>{{jobinfo.status}}</td>
             <td>
                 {% if jobinfo.job.machine %}
-                <a href = '{{jobinfo.job_machine_link}}' >{{job.machine.name}}</a>
+                <a href = '{{jobinfo.job_machine_link}}' >{{jobinfo.job.machine.name}}</a>
+				{% else %}
+				not assigned yet
                 {% endif %}
             </td>
             <td>TODO</td>
         </tr>
 {% endfor %}
+{% if jobinfolist|length == 0 %}
+        <tr class='emptymessage'>
+			<td colspan='4'>
+				{{emptymessage}}
+			</td>
+		</tr>
+{% endif %}
     </table>
