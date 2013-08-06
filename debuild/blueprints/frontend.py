@@ -308,6 +308,10 @@ def report(job_uuid):
     flink = "/report/firehose/%s/" % job_id
     loglink = "/report/log/%s/" % job_id
 
+    ### SCANDALOUS HACK
+    if job.type == 'clanganalyzer':
+        scanbuild_link = "/static/job-reports/%s/scan-build/"
+
     log = []
     if os.path.exists(log_path):
         log = (x.decode('utf-8') for x in open(log_path, 'r'))
@@ -316,6 +320,7 @@ def report(job_uuid):
         "job_info": job_info,
         "log_link": loglink,
         "firehose_link": flink,
+        "scanbuild_link": scanbuild_link,
         "log": log,
     })
 
