@@ -15,7 +15,11 @@
         </div>
         <div class='desc_line'>
             <div class='desc_key'>source package</div>
-            <div class='desc_value'><a href='{{job_info.package_link}}'>{{job.package.name}} {{job.package.version}}</a></div>
+            <div class='desc_value'><a href='{{job_info.package_link}}'>{{job_info.job.package.name}} {{job_info.job.package.version}}</a></div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>time processing</div>
+            <div class='desc_value'>{{job_info.job_runtime}}</div>
         </div>
     </div>
     <div class='block'>
@@ -29,6 +33,10 @@
             <div class='desc_value'><a href='{{firehose_link}}'>XML_format</a></div>
         </div>
     </div>
+	{% if job_info.job.failed %}
+    <div class='block'>
+	<h2>This job failed, check the reports and file/fix potential bugs.</h2>
+    </div>
     <div class='block'>
 		<h3>Scan-build output</h3>
         <div class='desc_line'>
@@ -36,6 +44,11 @@
             <div class='desc_value'><a href='{{scanbuild_link}}'>see report</a></div>
         </div>
     </div>
+	{% else %}
+    <div class='block'>
+	<h2>This job succeeded, either you are really good at what you are doing or nothing to report here.</h2>
+    </div>
+	{% endif %}
 
 <h1>Full Log</h1>
 <pre>
