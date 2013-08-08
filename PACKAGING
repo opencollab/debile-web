@@ -1,8 +1,8 @@
 What is required to install debuild.me.
 So that may become some hints to create the package.
-This not an "INSTALL" file as I hope we'll never have to install the system 
+This not an "INSTALL" file as I hope we'll never have to install the system
 like this...
-And I use virtualenvwrapper here for my sanity, preferably replaced in 
+And I use virtualenvwrapper here for my sanity, preferably replaced in
 production by installing the debian packages instead of using pip
 
 System : fresh wheezy, up to date on 04 Jul 2013.
@@ -12,42 +12,41 @@ Must be installed after lucy !
 
 (lucy)
 * Fetch the repo of ethel
-    cd ~ && git clone https://github.com/paultag/debuild.me.git
+    cd ~ && git clone https://github.com/LeoCavaille/debuild.me.git -b scan-build-html
 
 (lucy) virtualenv=lucy
 * Install debuildme dependancies
     cd ~/debuild.me
     pip install -r requirements.txt
 
-(debuildme) virtualenv=debuildme
-* Install fred dependancy
-    cd ~ && git clone https://github.com/paultag/fred.git
-+ PATCH fred/__init__.py for right mongo address
-    python setup.py develop
-
 * Render the templates
-For now no packages for npm node.js so...
 (root)
-    cd ~/custom
-    apt-get install curl build-essential openssl libssl-dev
-    git clone https://github.com/joyent/node.git
-    cd node
-    git checkout v0.10
-    ./configure --openssl-libpath=/usr/lib/ssl
-    make
-    make install
-    npm install -g less
+     wget http://snapshot.debian.org/archive/debian/20130429T032833Z/pool/main/n/nodejs/nodejs_0.6.19%7Edfsg1-7_amd64.deb && dpkg -i nodejs_0.6.19%7Edfsg1-7_amd64.deb; apt-get install -f
+    # More recent version of nodejs needs a too recent version of the glibc
+    wget http://ftp.us.debian.org/debian/pool/main/l/less.js/node-less_1.4.2-1_all.deb && dpkg -i node-less_1.4.2-1_all.deb
+
+* Configure the reverse proxy
+(root)
+/etc/nginx/sites-available/debuild.me
+###############################################################
+server {
+	server_name debian-server;
+	location / {
+		proxy_pass http://localhost:5000;
+	}
+}
+###############################################################
+cd /etc/nginx/sites-enabled && ln -s ../sites-available/debuild.me
+
+* Start the daemon
+    service nginx start
+
 (lucy) virtualenv=lucy
     cd ~/debuild.me
     make
-
-(root)
-* To run the webserver as debuildme on port 80, we redirect flask port
-    iptables -A PREROUTING -t nat -p tcp --dport 80 -j REDIRECT --to-port 5000
 
 (lucy) virtualenv=lucy
 * Run the web UI !
     cd ~/debuild.me
-+ PATCH app.py : app.run(host="0.0.0.0",debug=True)
     python app.py
 
