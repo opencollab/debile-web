@@ -6,7 +6,7 @@
             <th>Results</th>
         </tr>
 {% for jobinfo in jobinfolist %}
-        <tr class='job {{jobinfo.status}}'>
+        <tr class='job {% if jobinfo.job.is_finished() %}{% if jobinfo.job.failed %}failed{% else %}success{% endif %}{% endif %}'>
             <td>
 				{% if jobinfo.job.is_finished() %}
                 <a href = '{{jobinfo.job_link}}' >{{jobinfo.job.type}}</a> <em>({{jobinfo.job.arch}})</em>
@@ -22,7 +22,7 @@
 				not assigned yet
                 {% endif %}
             </td>
-            <td>TODO</td>
+            <td>{% if jobinfo.job.is_finished() %}{% if jobinfo.job.failed %}✗ Errors found{% else %}✓ Nothing found{% endif %}{% endif %}</td>
         </tr>
 {% endfor %}
 {% if jobinfolist|length == 0 %}

@@ -9,7 +9,7 @@
         <tr>
             <td>
                 <a href = '{{info.source_link}}' >
-                    {{info.source.name}}/{{info.source.version}} - run {{info.source.run}}
+                    {{info.source.name}}/{{info.source.version}}{% if info.source.run > 1 %} - run {{info.source.run}}{% endif %}
                 </a>
             </td>
             <td>
@@ -33,7 +33,7 @@
                         ⌚
                     {% endif %}
                 {% else %}
-                    {% if jerb.is_failed() %}
+                    {% if jerb.failed %}
                         {% if jerb.is_critical() %}
                             ☹
                         {% else %}

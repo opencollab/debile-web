@@ -5,9 +5,9 @@
 {% block content %}
 <h1>{{hacker.name}}</h1>
 
-{{hacker.name}}'s GPG key is <code>{{hacker.gpg}}</code>.
+{{hacker.name}}'s GPG key is <code>{{hacker.gpg_fingerprint}}</code>.
 
-{% with sources = hacker.get_uploads() %}
+{% with sources = hacker.sources %}
     {% include "source_list_fragment.html" %}
 {% endwith %}
 

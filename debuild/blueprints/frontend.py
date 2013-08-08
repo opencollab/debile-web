@@ -80,11 +80,11 @@ def index():
 @frontend.route("/sources/")
 def source_list():
     session = Session()
-    count = 10
+    count = 1000
     sources = session.query(Source)\
         .options(joinedload(Source.user))\
         .options(joinedload(Source.group))\
-        .order_by(Source.updated_at.desc())\
+        .order_by(Source.created_at.desc())\
         .limit(count)
     sources_info = []
     for s in sources:
@@ -265,7 +265,7 @@ def source(package_name, owner_name, package_version, run_number):
     })
 
 
-@frontend.route("/machine/<machine_name>/")
+@frontend.route("/machine/<machine_name>")
 def machine(machine_name):
     session = Session()
     # FIXME : unsafe code, catch exceptions
@@ -275,11 +275,11 @@ def machine(machine_name):
     })
 
 
-@frontend.route("/hacker/<hacker_id>/")
-def hacker(hacker_id):
+@frontend.route("/hacker/<hacker_login>")
+def hacker(hacker_login):
     session = Session()
 	# FIXME : unsafe code, catch exceptions
-    user = session.query(User).filter(User.id == user_id).one()
+    user = session.query(User).filter(User.login == hacker_login).one()
     return render_template('hacker.html', **{
         "hacker": user
     })
@@ -300,17 +300,17 @@ def report(job_uuid):
     job_info = {}
     job_info['job'] = job
     job_info['job_runtime'] = job.finished_at - job.assigned_at
-    job_info['package_link'] = '/source/%s/%s/%s/%s/' % (job.package.user.login, job.package.name, job.package.version, job.package.run)
+    job_info['package_link'] = '/source/%s/%s/%s/%s' % (job.package.user.login, job.package.name, job.package.version, job.package.run)
 
     log_path = os.path.join(config.get('paths', 'job'),
-                        job_id, 'log')
+                        job_uuid, 'log.txt')
 
-    flink = "/report/firehose/%s/" % job_id
-    loglink = "/report/log/%s/" % job_id
+    firehose_link = "/static-job-reports/%s/firehose.xml" % job_uuid
+    log_link = "/static-job-reports/%s/log.txt" % job_uuid
 
     ### SCANDALOUS HACK
     if job.type == 'clanganalyzer':
-        scanbuild_link = "/static/job-reports/%s/scan-build/"
+        scanbuild_link = "/static-job-reports/%s/scan-build/" % job_uuid
 
     log = []
     if os.path.exists(log_path):
@@ -318,8 +318,8 @@ def report(job_uuid):
 
     return render_template('report.html', **{
         "job_info": job_info,
-        "log_link": loglink,
-        "firehose_link": flink,
+        "log_link": log_link,
+        "firehose_link": firehose_link,
         "scanbuild_link": scanbuild_link,
         "log": log,
     })
