@@ -1,2 +1,3 @@
+* Need real services (not "python foo.py"). This applies also for lucy, fred, ethel
 * When we just did a new install and we don't have anything. Display some information like "here is what you should do next"
 
