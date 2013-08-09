@@ -311,6 +311,8 @@ def report(job_uuid):
     ### SCANDALOUS HACK
     if job.type == 'clanganalyzer':
         scanbuild_link = "/static-job-reports/%s/scan-build/" % job_uuid
+    else:
+        scanbuild_link = ""
 
     log = []
     if os.path.exists(log_path):
