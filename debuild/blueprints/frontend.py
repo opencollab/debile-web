@@ -63,16 +63,29 @@ def location_display(obj):
     return "%s:%s" % (obj['file']['givenpath'],
                       obj['point']['line'])
 
+def get_package_link(p):
+    if p.type == "source":
+        return "/source/%s/%s/%s/%s" % (p.user.login, p.name, p.version, p.run)
+    else:
+        return "/notimplementedyet"
+
+def get_machine_link(m):
+    return "/machine/%s" % m.name
 
 @frontend.route("/")
 def index():
     session = Session()
     active_jobs = session.query(Job).filter(Job.machine != None).filter(Job.finished_at == None).all()
     machines = session.query(Machine).options(joinedload('jobs')).all()
-    # TODO : Disable fred builds query for now
-    #pending = fred_db.builds.find()
+    active_jobs_info = []
+    for j in active_jobs:
+        info = {}
+        info['job'] = j
+        info['package_link'] = get_package_link(j.package)
+        info['machine_link'] = get_machine_link(j.machine)
+        active_jobs_info.append(info)
     return render_template('about.html', **{
-        "active_jobs": active_jobs,
+        "active_jobs_info": active_jobs_info,
         "machines": machines,
     })
 

@@ -7,21 +7,21 @@
             <th>Builder</th>
             <th>Source Package</th>
         </tr>
-{% for job in jobs %}
+{% for jobinfo in active_jobs_info %}
         <tr>
-            <td>{{job.type}}</td>
-            <td>{{job.arch}}</td>
-            <td>{{job.suite}}</td>
-            <td>{{job.assigned_at|ago}}</td>
+            <td>{{jobinfo.job.type}}</td>
+            <td>{{jobinfo.job.arch}}</td>
+            <td>{{jobinfo.job.suite}}</td>
+            <td>{{jobinfo.job.assigned_at|ago}}</td>
             <td>
-                {% if job.machine %}
-                    <a href = '/machine/{{job.machine.name}}' >{{job.machine.name}}</a>
+                {% if jobinfo.job.machine %}
+                <a href = '{{jobinfo.machine_link}}' >{{jobinfo.job.machine.name}}</a>
+                {% else %}
+                <em>not assigned</em>
                 {% endif %}
             </td>
             <td>
-                {% with package = job.package %}
-                    <a href = '/source/{{package.package_id}}' >{{package.name}}</a>
-                {% endwith %}
+                <a href = '{{jobinfo.package_link}}' >{{jobinfo.job.package.name}}</a>
             </td>
         </tr>
 {% endfor %}
