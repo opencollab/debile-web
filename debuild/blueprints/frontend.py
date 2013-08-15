@@ -243,7 +243,7 @@ def source(package_name, owner_name, package_version, run_number):
                 info['status'] = 'pending'
         else:
             info['status'] = 'finished'
-            binaries_jobs_info.append(info)
+        binaries_jobs_info.append(info)
 
     return render_template('source.html', **{
         "desc": desc,
