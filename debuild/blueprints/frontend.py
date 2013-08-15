@@ -295,7 +295,14 @@ def report(job_uuid):
     job_info = {}
     job_info['job'] = job
     job_info['job_runtime'] = job.finished_at - job.assigned_at
-    job_info['package_link'] = '/source/%s/%s/%s/%s' % (job.package.user.login, job.package.name, job.package.version, job.package.run)
+    job_info['machine_link'] = "/machine/%s" % job.machine.name
+    if job.package.type == "source":
+        job_info['package_link'] = '/source/%s/%s/%s/%s' % (job.package.user.login, job.package.name, job.package.version, job.package.run)
+    else:
+        config = Config()
+        pool = os.path.join(config.get('paths', 'public'), str(job.package.source.package_id),job.package.arch, job.package.deb)
+        job_info['deb_link'] = pool
+        job_info['source_link'] = '/source/%s/%s/%s/%s' % (job.package.source.user.login, job.package.source.name, job.package.source.version, job.package.source.run)
 
     log_path = os.path.join(config.get('paths', 'job'),
                         job_uuid, 'log.txt')

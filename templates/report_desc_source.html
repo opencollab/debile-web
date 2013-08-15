@@ -1,0 +1,30 @@
+    <div class='block'>
+		<h3>Job info</h3>
+        <div class='desc_line'>
+            <div class='desc_key'>type</div>
+            <div class='desc_value'>{{job_info.job.type}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>builder</div>
+            <div class='desc_value'><a href='{{job_info.machine_link}}'>{{job_info.job.machine.name}}</a></div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>source package</div>
+            <div class='desc_value'><a href='{{job_info.package_link}}'>{{job_info.job.package.name}} {{job_info.job.package.version}}</a></div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>time processing</div>
+            <div class='desc_value'>{{job_info.job_runtime}}</div>
+        </div>
+    </div>
+    <div class='block'>
+		<h3>Downloads</h3>
+        <div class='desc_line'>
+            <div class='desc_key'>job log</div>
+            <div class='desc_value'><a href='{{log_link}}'>text_format</a></div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>firehose report</div>
+            <div class='desc_value'><a href='{{firehose_link}}'>XML_format</a></div>
+        </div>
+    </div>
