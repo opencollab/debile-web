@@ -129,7 +129,6 @@ def source(package_name, owner_name, package_version, run_number):
         .filter(User.login == owner_name)
     versions = sorted(set([e[0] for e in versions_query.all()]))
 
-    print versions
     latest_version = versions[-1]
     if package_version == 'latest':
         this_version = latest_version
@@ -145,7 +144,6 @@ def source(package_name, owner_name, package_version, run_number):
         .order_by(Source.run.asc())
     runs = [e[0] for e in runs_query.all()]
 
-    print runs
     latest_run = runs[-1]
     if run_number == '0':
         this_run = latest_run
