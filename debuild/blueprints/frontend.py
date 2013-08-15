@@ -191,10 +191,7 @@ def source(package_name, owner_name, package_version, run_number):
     versions_info = []
     if multiple_versions:
         for v in versions:
-            if owner_name == 'fred':
-                href = "/sources/%s/%s" % (package_name, v)
-            else:
-                href = "/sources/%s/%s/%s" % (owner_name, package_name, v)
+            href = "/source/%s/%s/%s/%s" % (owner_name, package_name, v, 1)
             versions_info.append((v, href))
 
     # Compute infos to display the job parts
