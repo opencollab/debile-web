@@ -75,7 +75,7 @@ def get_machine_link(m):
 @frontend.route("/")
 def index():
     session = Session()
-    active_jobs = session.query(Job).filter(Job.machine != None).filter(Job.finished_at == None).all()
+    active_jobs = session.query(Job).options(joinedload('machine')).filter(Job.machine != None).filter(Job.finished_at == None).all()
     machines = session.query(Machine).options(joinedload('jobs')).all()
     active_jobs_info = []
     for j in active_jobs:
