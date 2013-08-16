@@ -301,10 +301,12 @@ def hacker(hacker_login):
 
     ur = UserRepository(user)
     dput_upload_profile = ur.generate_dputprofile()
+    apt_binary_list = ur.generate_aptbinarylist()
 
     return render_template('hacker.html', **{
         "hacker": user,
-        "dput_upload_profile": dput_upload_profile
+        "dput_upload_profile": dput_upload_profile,
+        "apt_binary_list": apt_binary_list
     })
 
 
