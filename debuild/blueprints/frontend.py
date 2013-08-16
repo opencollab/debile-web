@@ -21,6 +21,7 @@
 from flask import Blueprint, render_template, send_file
 from sqlalchemy.orm import joinedload
 from lucy.orm import Package, Source, Binary, Machine, User, Job, Group
+from lucy.archive import UserRepository
 from lucy.config import Config
 from lucy.server import Session
 
@@ -75,18 +76,27 @@ def get_machine_link(m):
 @frontend.route("/")
 def index():
     session = Session()
-    active_jobs = session.query(Job).options(joinedload('machine')).filter(Job.machine != None).filter(Job.finished_at == None).all()
+    active_jobs = session.query(Job)\
+        .options(joinedload('machine'))\
+        .filter(Job.machine != None)\
+        .filter(Job.finished_at == None)\
+        .all()
     machines = session.query(Machine).options(joinedload('jobs')).all()
     active_jobs_info = []
     for j in active_jobs:
         info = {}
         info['job'] = j
         info['package_link'] = get_package_link(j.package)
-        info['machine_link'] = get_machine_link(j.machine)
+        if j.machine:
+            info['machine_link'] = get_machine_link(j.machine)
         active_jobs_info.append(info)
-    return render_template('about.html', **{
+
+    pending_jobs = session.query(Job)\
+        .filter(Job.assigned_at == None)\
+        .count()
+    return render_template('index.html', **{
         "active_jobs_info": active_jobs_info,
-        "machines": machines,
+        "pending_jobs": pending_jobs
     })
 
 
@@ -286,10 +296,15 @@ def machine(machine_name):
 @frontend.route("/hacker/<hacker_login>")
 def hacker(hacker_login):
     session = Session()
-	# FIXME : unsafe code, catch exceptions
+    # FIXME : unsafe code, catch exceptions
     user = session.query(User).filter(User.login == hacker_login).one()
+
+    ur = UserRepository(user)
+    dput_upload_profile = ur.generate_dputprofile()
+
     return render_template('hacker.html', **{
-        "hacker": user
+        "hacker": user,
+        "dput_upload_profile": dput_upload_profile
     })
 
 

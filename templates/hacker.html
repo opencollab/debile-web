@@ -7,8 +7,13 @@
 
 {{hacker.name}}'s GPG key is <code>{{hacker.gpg_fingerprint}}</code>.
 
-{% with sources = hacker.sources %}
-    {% include "source_list_fragment.html" %}
-{% endwith %}
+To upload a package to debile :
+<ul>
+    <li>Install dput-ng</li>
+    <li>Copy the following in your <strong>~/.dput.d/profiles/debile.json</strong></li>
+</ul>
+<pre>
+{{dput_upload_profile}}
+</pre>
 
 {% endblock %}
