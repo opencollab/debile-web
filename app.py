@@ -21,9 +21,8 @@
 from flask import Flask
 from debile.blueprints.frontend import frontend
 
-
 app = Flask(__name__)
-
+app.config.from_object('config')
 app.register_blueprint(frontend)
 
 
