@@ -1,3 +1,5 @@
 flask
 humanize
 firehose
+flask-wtf
+
