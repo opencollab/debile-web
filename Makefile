@@ -15,7 +15,7 @@ devel:
 	./devel.sh
 
 lint:
-	flake8 debuild
+	flake8 debile
 
 
 build: clean

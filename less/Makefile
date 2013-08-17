@@ -1,4 +1,4 @@
-LESS_SCRIPTS = debuild.me.css
+LESS_SCRIPTS = debile.css
 
 LESSC = lessc
 LESSCFLAGS = -x
@@ -17,7 +17,7 @@ build: $(LESS_SCRIPTS)
 
 
 install:
-	mv debuild.me.css $(STATIC_CSS)/debuild.me.css
+	mv debile.css $(STATIC_CSS)/debile.css
 
 
 .less.css:

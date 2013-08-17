@@ -1,4 +1,4 @@
-What is required to install debuild.me.
+What is required to install debile.
 So that may become some hints to create the package.
 This not an "INSTALL" file as I hope we'll never have to install the system
 like this...
@@ -12,11 +12,11 @@ Must be installed after lucy !
 
 (lucy)
 * Fetch the repo of ethel
-    cd ~ && git clone https://github.com/LeoCavaille/debuild.me.git -b scan-build-html
+    cd ~ && git clone https://github.com/LeoCavaille/debile.git -b scan-build-html
 
 (lucy) virtualenv=lucy
-* Install debuildme dependancies
-    cd ~/debuild.me
+* Install debileme dependancies
+    cd ~/debile
     pip install -r requirements.txt
 
 * Render the templates
@@ -27,7 +27,7 @@ Must be installed after lucy !
 
 * Configure the reverse proxy
 (root)
-/etc/nginx/sites-available/debuild.me
+/etc/nginx/sites-available/debile
 ###############################################################
 server {
 	server_name debian-server;
@@ -36,17 +36,17 @@ server {
 	}
 }
 ###############################################################
-cd /etc/nginx/sites-enabled && ln -s ../sites-available/debuild.me
+cd /etc/nginx/sites-enabled && ln -s ../sites-available/debile
 
 * Start the daemon
     service nginx start
 
 (lucy) virtualenv=lucy
-    cd ~/debuild.me
+    cd ~/debile
     make
 
 (lucy) virtualenv=lucy
 * Run the web UI !
-    cd ~/debuild.me
+    cd ~/debile
     python app.py
 
