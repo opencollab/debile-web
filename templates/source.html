@@ -32,9 +32,9 @@
 
     {% if multiple_runs %}
     <div class='block'>
-    <h3>debuild.me runs</h3>
+    <h3>debile runs</h3>
         {% if latest_run == package.run %}
-        This is the latest run of debuild.me available for this package, but you can access previous runs :
+        This is the latest run of debile available for this package, but you can access previous runs :
         {% else %}
         This package version has been processed multiple times, see other runs :
         {% endif %}
@@ -54,7 +54,7 @@
     <h3>Versions</h3>
 	<p>
         {% if latest_version == package.version %}
-        This is the latest version of debuild.me available for this package, but you can access previous versions :
+        This is the latest version of debile available for this package, but you can access previous versions :
         {% else %}
         This package has been processed for multiple versions, see others :
         {% endif %}
@@ -71,7 +71,7 @@
 
     <div class='block'>
     <h3>source jobs</h3>
-    debuild.me launched these jobs on the source package provided
+    debile launched these jobs on the source package provided
 {% with jobinfolist = source_jobs_info %}
 {% with emptymessage = 'Ahem, this is weird, there should be jobs here, call us...' %}
     {% include "report_list_fragment.html" %}
@@ -81,7 +81,7 @@
 
     <div class='block'>
     <h3>binary jobs</h3>
-    debuild.me launched these jobs on the binaries uploaded after the build of the source package
+    debile launched these jobs on the binaries uploaded after the build of the source package
 {% with jobinfolist = binaries_jobs_info %}
 {% with emptymessage = 'No binary jobs yet, check the build jobs above.' %}
     {% include "report_list_binary_fragment.html" %}
