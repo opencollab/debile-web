@@ -2,4 +2,4 @@ flask
 humanize
 firehose
 flask-wtf
-
+flask-jsonpify
