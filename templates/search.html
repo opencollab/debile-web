@@ -5,22 +5,21 @@
   <script type=text/javascript>
   $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
   </script>
-<!-- <script type="text/javascript">
-source: function( request, response ) {
-    $.getJSON($SCRIPT_ROOT + "/_search_package", {
-        search: request
-    }, response);
-}
-</script>
--->
+
  <script type="text/javascript">
+function yourChangeHandler() {
+alert("foo");
+}
   $(function() {
-    $( "#package" ).autocomplete({
-  source: function( request, response ) {
-    $.getJSON($SCRIPT_ROOT + "/_search_package", {
-        search: request
-    }, response);
-  }
+  $( "#package" ).autocomplete({
+    source: function( request, response ) {
+        $.getJSON($SCRIPT_ROOT + "/_search_package", {
+          search: request
+        }, response);
+    },
+    select: function(event, ui) { 
+      $("#package").val(ui.item.label);
+      $("#searchPackageForm").submit(); }
   })
   });
   </script>
@@ -32,7 +31,7 @@ source: function( request, response ) {
   </style> 
 
 <table><tr><td>By package</td><td>
-<form>
+<form id="searchPackageForm">
     {{form.hidden_tag()}}
   <div class="ui-widget">        {{form.package(size=20)}}
  <input type="submit" value="Search" /></div>
