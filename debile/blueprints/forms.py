@@ -3,3 +3,4 @@ from flask.ext.wtf import Required
 
 class SearchPackageForm(Form):
     package = TextField('package', validators = [Required()])
+    maintainer = TextField('maintainer', validators = [Required()])

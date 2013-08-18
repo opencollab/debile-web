@@ -1,13 +1,47 @@
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.1/jquery-ui.js"></script>
+  <link rel="stylesheet" type="text/css" href="/static/css/jquery-ui.css">
+
+  <script type=text/javascript>
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  </script>
+<!-- <script type="text/javascript">
+source: function( request, response ) {
+    $.getJSON($SCRIPT_ROOT + "/_search_package", {
+        search: request
+    }, response);
+}
+</script>
+-->
+ <script type="text/javascript">
+  $(function() {
+    $( "#package" ).autocomplete({
+  source: function( request, response ) {
+    $.getJSON($SCRIPT_ROOT + "/_search_package", {
+        search: request
+    }, response);
+  }
+  })
+  });
+  </script>
+
+  <style>
+  .ui-autocomplete-loading {
+    background: white url('/static/imgs/ui-anim_basic_16x16.gif') right center no-repeat;
+  }
+  </style> 
 
 <table><tr><td>By package</td><td>
 <form>
     {{form.hidden_tag()}}
-        {{form.package(size=20)}} <input type="submit" value="Search" />
+  <div class="ui-widget">        {{form.package(size=20)}}
+ <input type="submit" value="Search" /></div>
 </form>
 </td></tr>
 <tr><td>By maintainer</td><td>
 <form>
-<input type="text" /><input type="button" value="Search" />
+ {{form.maintainer(size=20)}} <input type="submit" value="Search" />
 </form>
 </td></tr>
 </table>
+

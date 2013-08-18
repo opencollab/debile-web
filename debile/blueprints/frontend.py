@@ -18,7 +18,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from flask import Blueprint, render_template, send_file
+from flask import Blueprint, render_template, send_file, request
+from flask.ext.jsonpify import jsonify
 
 from sqlalchemy.orm import joinedload
 
@@ -383,3 +384,15 @@ def report_log(job_id):
 
     if os.path.exists(log_path):
         return send_file(log_path, mimetype='text/plain', as_attachment=True, attachment_filename='log.txt')
+
+
+
+@frontend.route('/_search_package')
+def search_package():
+    search = request.args.get('search[term]')
+    session = Session()
+    packages_query = session.query(Source.name)\
+        .filter(Source.name.like(search+"%")).group_by(Source.name).limit(10)
+    print packages_query
+    result = [r[0] for r in packages_query]
+    return jsonify(result)
