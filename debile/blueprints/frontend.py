@@ -221,7 +221,7 @@ def source(package_name, owner_name, package_version, run_number):
     for j in source_jobs:
         info = {}
         info['job'] = j
-        info['job_link'] = '/report/%s' % j.uuid
+        info['job_link'] = '/report/%s' % j.id
         if j.machine:
             info['job_machine_link'] = '/machine/%s' % j.machine.name
         if not j.is_finished():
@@ -245,7 +245,7 @@ def source(package_name, owner_name, package_version, run_number):
     for j in binaries_jobs:
         info = {}
         info['job'] = j
-        info['job_link'] = '/report/%s' % j.uuid
+        info['job_link'] = '/report/%s' % j.id
         if j.machine:
             info['job_machine_link'] = '/machine/%s' % j.machine.name
         if not j.is_finished():
@@ -293,13 +293,13 @@ def hacker(hacker_login):
     })
 
 
-@frontend.route("/report/<job_uuid>/")
-def report(job_uuid):
+@frontend.route("/report/<job_id>/")
+def report(job_id):
 # TODO : design architecture Pending, firewose ?
 #    report = Report.load(report_id)
     config = Config()
     session = Session()
-    job_query = session.query(Job).filter(Job.uuid == job_uuid)
+    job_query = session.query(Job).filter(Job.id == job_id)
     try:
         job = job_query.one()
     except (NoResultFound, MultipleResultsFound):
@@ -318,14 +318,14 @@ def report(job_uuid):
         job_info['source_link'] = '/source/%s/%s/%s/%s' % (job.package.source.user.login, job.package.source.name, job.package.source.version, job.package.source.run)
 
     log_path = os.path.join(config.get('paths', 'job'),
-                        job_uuid, 'log.txt')
+                        job_id, 'log.txt')
 
-    firehose_link = "/static-job-reports/%s/firehose.xml" % job_uuid
-    log_link = "/static-job-reports/%s/log.txt" % job_uuid
+    firehose_link = "/static-job-reports/%s/firehose.xml" % job_id
+    log_link = "/static-job-reports/%s/log.txt" % job_id
 
     ### SCANDALOUS HACK
     if job.type == 'clanganalyzer':
-        scanbuild_link = "/static-job-reports/%s/scan-build/" % job_uuid
+        scanbuild_link = "/static-job-reports/%s/scan-build/" % job_id
     else:
         scanbuild_link = ""
 

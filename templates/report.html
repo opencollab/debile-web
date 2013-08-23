@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Report for job {{job_info.job.uuid}}{% endblock %}
+{% block title %}Report for job id={{job_info.job.id}}{% endblock %}
 
 {% block content %}
 {% if job_info.job.package.type == 'binary' %}
