@@ -1,4 +1,4 @@
-What is required to install debile.
+What is required to install debile web frontend
 So that may become some hints to create the package.
 This not an "INSTALL" file as I hope we'll never have to install the system
 like this...
@@ -7,16 +7,16 @@ production by installing the debian packages instead of using pip
 
 System : fresh wheezy, up to date on 04 Jul 2013.
 
-Must be installed after lucy !
-#FIXME or WONTFIX ? must be on the same machine than lucy and the pool
+Must be installed after debile-master
+#FIXME or WONTFIX ? must be on the same machine than debile and the pool
 
-(lucy)
-* Fetch the repo of ethel
-    cd ~ && git clone https://github.com/LeoCavaille/debile.git -b scan-build-html
+(debile)
+* Fetch the repo of debile-web
+    cd ~ && git clone git://git.debian.org/git/pkg-debile/debile-web.git
 
-(lucy) virtualenv=lucy
-* Install debileme dependancies
-    cd ~/debile
+(debile) virtualenv=debile
+* Install debile-web dependancies
+    cd ~/debile-web
     pip install -r requirements.txt
 
 * Render the templates
@@ -24,6 +24,9 @@ Must be installed after lucy !
      wget http://snapshot.debian.org/archive/debian/20130429T032833Z/pool/main/n/nodejs/nodejs_0.6.19%7Edfsg1-7_amd64.deb && dpkg -i nodejs_0.6.19%7Edfsg1-7_amd64.deb; apt-get install -f
     # More recent version of nodejs needs a too recent version of the glibc
     wget http://ftp.us.debian.org/debian/pool/main/l/less.js/node-less_1.4.2-1_all.deb && dpkg -i node-less_1.4.2-1_all.deb
+
+(debile)
+    cd ~/debile-web && make
 
 * Configure the reverse proxy
 (root)
@@ -41,12 +44,12 @@ cd /etc/nginx/sites-enabled && ln -s ../sites-available/debile
 * Start the daemon
     service nginx start
 
-(lucy) virtualenv=lucy
-    cd ~/debile
+(debile) virtualenv=debile
+    cd ~/debile-web
     make
 
-(lucy) virtualenv=lucy
+(debile) virtualenv=debile
 * Run the web UI !
-    cd ~/debile
+    cd ~/debile-web
     python app.py
 
