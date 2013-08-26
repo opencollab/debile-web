@@ -132,7 +132,7 @@ def group_list(group_id, page=0):
 	# FIXME : unsafe code, catch exceptions
     session = Session()
     g = session.query(Group).filter(Group.name == group_id).one()
-    sources = session.query(Source).filter(Source.group == g).order_by(Source.updated_at.asc()).paginate(page, per_page=15)
+    sources = session.query(Source).filter(Source.group == g).order_by(Source.created_at.asc()).paginate(page, per_page=15)
 
     return render_template('group.html', **{
         "sources": sources,
