@@ -23,6 +23,7 @@ from sqlalchemy.orm import joinedload
 from debilemaster.orm import Package, Source, Binary, Machine, User, Job, Group
 from debilemaster.config import Config
 from debilemaster.server import Session
+from debilemaster.archive import UserRepository
 
 from humanize import naturaltime
 from humanize.time import naturaldelta
