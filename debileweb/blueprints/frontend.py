@@ -20,9 +20,9 @@
 
 from flask import Blueprint, render_template, send_file
 from sqlalchemy.orm import joinedload
-from debile.master.orm import Package, Source, Binary, Machine, User, Job, Group
-from debile.master.config import Config
-from debile.master.server import Session
+from debilemaster.orm import Package, Source, Binary, Machine, User, Job, Group
+from debilemaster.config import Config
+from debilemaster.server import Session
 
 from humanize import naturaltime
 from humanize.time import naturaldelta
