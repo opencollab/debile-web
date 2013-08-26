@@ -312,12 +312,11 @@ def report(job_id):
     if job.package.type == "source":
         job_info['package_link'] = '/source/%s/%s/%s/%s' % (job.package.user.login, job.package.name, job.package.version, job.package.run)
     else:
-        config = Config()
-        pool = os.path.join(config.get('paths', 'public'), str(job.package.source.package_id),job.package.arch, job.package.deb)
+        pool = os.path.join(config.get('paths', 'pool_url'), str(job.package.source.package_id),job.package.arch, job.package.deb)
         job_info['deb_link'] = pool
         job_info['source_link'] = '/source/%s/%s/%s/%s' % (job.package.source.user.login, job.package.source.name, job.package.source.version, job.package.source.run)
 
-    log_path = os.path.join(config.get('paths', 'job'),
+    log_path = os.path.join(config.get('paths', 'jobs_path'),
                         job_id, 'log.txt')
 
     firehose_link = "/static-job-reports/%s/firehose.xml" % job_id
@@ -344,7 +343,7 @@ def report(job_id):
 @frontend.route("/report/firehose/<job_id>/")
 def report_firehose(job_id):
     config = Config()
-    firehose_path = os.path.join(config.get('paths', 'job'),
+    firehose_path = os.path.join(config.get('paths', 'jobs_path'),
                         job_id, 'firehose.xml')
 
     if os.path.exists(firehose_path):
@@ -353,7 +352,7 @@ def report_firehose(job_id):
 @frontend.route("/report/log/<job_id>/")
 def report_log(job_id):
     config = Config()
-    log_path = os.path.join(config.get('paths', 'job'),
+    log_path = os.path.join(config.get('paths', 'jobs_path'),
                         job_id, 'log')
 
     if os.path.exists(log_path):

@@ -8,6 +8,12 @@
             <div class='desc_key'>builder</div>
             <div class='desc_value'><a href='{{job_info.machine_link}}'>{{job_info.job.machine.name}}</a></div>
         </div>
+        {% if job_info.job.type == 'build' %}
+        <div class='desc_line'>
+            <div class='desc_key'>compiler setup</div>
+            <div class='desc_value'>{{job_info.job.subtype}}</div>
+        </div>
+        {% endif %}
         <div class='desc_line'>
             <div class='desc_key'>binary package</div>
             <div class='desc_value'>{{job_info.job.package.name}} {{job_info.job.package.version}}</div>
