@@ -3,22 +3,16 @@
 {% block title %}About{% endblock %}
 
 {% block content %}
-This experimental infrastructure aims to provide a generic rebuild platform.<br />
-Normal build, custom builds (clang based) or static analyzers (coccinelle, scan-build, etc) are managed through this infrastructure.<br /><br />
-{% include "search.html" %}
-<br />
+Perhaps you're looking for
+<a href = '/sources' >uploads</a>
 
-Perhaps you're looking for the 
-<a href = '/sources' >last uploads</a>
-<br />
 <h1>Active Jobs</h1>
 
     {% include "job_list_fragment.html" %}
 
 <h1>Pending jobs</h1>
+There are currently {{pending_jobs}} jobs to assign.
 
-<br />
-<h1>Builder Status</h1>
 
 
 {% endblock %}

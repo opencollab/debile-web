@@ -1,6 +1,7 @@
     <table>
         <tr>
             <th>Type</th>
+            <th>Name</th>
             <th>Status</th>
             <th>Machine</th>
             <th>Results</th>
@@ -8,12 +9,13 @@
 {% for jobinfo in jobinfolist %}
         <tr class='job {% if jobinfo.job.is_finished() %}{% if jobinfo.job.failed %}failed{% else %}success{% endif %}{% endif %}'>
             <td>
-                {% if jobinfo.job.is_finished() %}
-                    <a href = '{{jobinfo.job_link}}' >{{jobinfo.job.type}}{% if jobinfo.job.subtype %}/{{jobinfo.job.subtype}}{% endif %}</a> <em>({{jobinfo.job.arch}})</em>
-                {% else %}
-                {{jobinfo.job.type}}{% if jobinfo.job.subtype %}/{{jobinfo.job.subtype}}{% endif %} <em>({{jobinfo.job.arch}})</em>
-                {% endif %}
+				{% if jobinfo.job.is_finished() %}
+                <a href = '{{jobinfo.job_link}}' >{{jobinfo.job.type}}</a> <em>({{jobinfo.job.arch}})</em>
+				{% else %}
+				{{jobinfo.job.type}} <em>({{jobinfo.job.arch}})</em>
+				{% endif %}
             </td>
+            <td>{{jobinfo.job.package.name}}</td>
             <td>{{jobinfo.status}}</td>
             <td>
                 {% if jobinfo.job.machine %}

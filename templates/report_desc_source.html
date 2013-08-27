@@ -4,6 +4,12 @@
             <div class='desc_key'>type</div>
             <div class='desc_value'>{{job_info.job.type}}</div>
         </div>
+        {% if job_info.job.subtype %}
+        <div class='desc_line'>
+            <div class='desc_key'>subtype</div>
+            <div class='desc_value'>{{job_info.job.subtype}}</div>
+        </div>
+        {% endif %}
         <div class='desc_line'>
             <div class='desc_key'>builder</div>
             <div class='desc_value'><a href='{{job_info.machine_link}}'>{{job_info.job.machine.name}}</a></div>

@@ -7,8 +7,25 @@
 
 {{hacker.name}}'s GPG key is <code>{{hacker.gpg_fingerprint}}</code>.
 
-{% with sources = hacker.sources %}
-    {% include "source_list_fragment.html" %}
-{% endwith %}
+<h2>Upload your source package to debile</h2>
+Follow our one-minute-very-easy-even-for-noobs setup guide.
+<ul>
+    <li>Install dput-ng</li>
+    <li>Copy the following in your <strong>~/.dput.d/profiles/debile.json</strong></li>
+</ul>
+<pre>
+{{dput_upload_profile}}
+</pre>
 
+<h2>Download binary packages of debile with APT</h2>
+Choose to add one of the following mirrors to <strong>/etc/apt/sources.list.d/debile.list</strong>
+<pre>
+{{apt_binary_list}}
+</pre>
+
+<h2>Re-get the latest version of your source packages with APT</h2>
+Add the following mirrors to <strong>/etc/apt/sources.list.d/debile.list</strong>
+<pre>
+{{apt_source_list}}
+</pre>
 {% endblock %}

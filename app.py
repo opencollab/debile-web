@@ -19,7 +19,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 from flask import Flask
-from debile.blueprints.frontend import frontend
+from debileweb.blueprints.frontend import frontend
 
 app = Flask(__name__)
 app.config.from_object('config')

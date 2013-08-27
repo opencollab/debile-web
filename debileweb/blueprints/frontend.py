@@ -17,16 +17,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
-
 from flask import Blueprint, render_template, send_file, request, redirect
 from flask.ext.jsonpify import jsonify
 
 from sqlalchemy.orm import joinedload, cast
 
-from lucy.orm import Package, Source, Binary, Machine, User, Job, Group
-from lucy.archive import UserRepository
-from lucy.config import Config
-from lucy.server import Session
+from debilemaster.orm import Package, Source, Binary, Machine, User, Job, Group
+from debilemaster.config import Config
+from debilemaster.server import Session
+from debilemaster.archive import UserRepository
 
 from humanize import naturaltime
 from humanize.time import naturaldelta
@@ -99,12 +98,11 @@ def index():
         .count()
 
     form = SearchPackageForm()
-
     return render_template('index.html', **{
         "active_jobs_info": active_jobs_info,
         "pending_jobs": pending_jobs,
         "form": form
-        })
+    })
 
 
 @frontend.route("/sources/")
@@ -139,7 +137,7 @@ def group_list(group_id, page=0):
 	# FIXME : unsafe code, catch exceptions
     session = Session()
     g = session.query(Group).filter(Group.name == group_id).one()
-    sources = session.query(Source).filter(Source.group == g).order_by(Source.updated_at.asc()).paginate(page, per_page=15)
+    sources = session.query(Source).filter(Source.group == g).order_by(Source.created_at.asc()).paginate(page, per_page=15)
 
     return render_template('group.html', **{
         "sources": sources,
@@ -238,7 +236,7 @@ def source(package_name, owner_name, package_version, run_number):
     for j in source_jobs:
         info = {}
         info['job'] = j
-        info['job_link'] = '/report/%s' % j.uuid
+        info['job_link'] = '/report/%s' % j.id
         if j.machine:
             info['job_machine_link'] = '/machine/%s' % j.machine.name
         if not j.is_finished():
@@ -262,7 +260,7 @@ def source(package_name, owner_name, package_version, run_number):
     for j in binaries_jobs:
         info = {}
         info['job'] = j
-        info['job_link'] = '/report/%s' % j.uuid
+        info['job_link'] = '/report/%s' % j.id
         if j.machine:
             info['job_machine_link'] = '/machine/%s' % j.machine.name
         if not j.is_finished():
@@ -319,13 +317,13 @@ def hacker(hacker_login):
     })
 
 
-@frontend.route("/report/<job_uuid>/")
-def report(job_uuid):
+@frontend.route("/report/<job_id>/")
+def report(job_id):
 # TODO : design architecture Pending, firewose ?
 #    report = Report.load(report_id)
     config = Config()
     session = Session()
-    job_query = session.query(Job).filter(Job.uuid == job_uuid)
+    job_query = session.query(Job).filter(Job.id == job_id)
     try:
         job = job_query.one()
     except (NoResultFound, MultipleResultsFound):
@@ -338,20 +336,19 @@ def report(job_uuid):
     if job.package.type == "source":
         job_info['package_link'] = '/source/%s/%s/%s/%s' % (job.package.user.login, job.package.name, job.package.version, job.package.run)
     else:
-        config = Config()
-        pool = os.path.join(config.get('paths', 'public'), str(job.package.source.package_id),job.package.arch, job.package.deb)
+        pool = os.path.join(config.get('paths', 'pool_url'), str(job.package.source.package_id),job.package.arch, job.package.deb)
         job_info['deb_link'] = pool
         job_info['source_link'] = '/source/%s/%s/%s/%s' % (job.package.source.user.login, job.package.source.name, job.package.source.version, job.package.source.run)
 
-    log_path = os.path.join(config.get('paths', 'job'),
-                        job_uuid, 'log.txt')
+    log_path = os.path.join(config.get('paths', 'jobs_path'),
+                        job_id, 'log.txt')
 
-    firehose_link = "/static-job-reports/%s/firehose.xml" % job_uuid
-    log_link = "/static-job-reports/%s/log.txt" % job_uuid
+    firehose_link = "/static-job-reports/%s/firehose.xml" % job_id
+    log_link = "/static-job-reports/%s/log.txt" % job_id
 
     ### SCANDALOUS HACK
     if job.type == 'clanganalyzer':
-        scanbuild_link = "/static-job-reports/%s/scan-build/" % job_uuid
+        scanbuild_link = "/static-job-reports/%s/scan-build/" % job_id
     else:
         scanbuild_link = ""
 
@@ -370,7 +367,7 @@ def report(job_uuid):
 @frontend.route("/report/firehose/<job_id>/")
 def report_firehose(job_id):
     config = Config()
-    firehose_path = os.path.join(config.get('paths', 'job'),
+    firehose_path = os.path.join(config.get('paths', 'jobs_path'),
                         job_id, 'firehose.xml')
 
     if os.path.exists(firehose_path):
@@ -379,7 +376,7 @@ def report_firehose(job_id):
 @frontend.route("/report/log/<job_id>/")
 def report_log(job_id):
     config = Config()
-    log_path = os.path.join(config.get('paths', 'job'),
+    log_path = os.path.join(config.get('paths', 'jobs_path'),
                         job_id, 'log')
 
     if os.path.exists(log_path):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from debile import __appname__, __version__
+from debileweb import __appname__, __version__
 from setuptools import setup
 
 long_description = open('README.md', 'r').read()
@@ -9,8 +9,8 @@ setup(
     name=__appname__,
     version=__version__,
     packages=[
-        'debile',
-        'debile.blueprints',
+        'debileweb',
+        'debileweb.blueprints',
     ],
     author="Paul Tagliamonte",
     author_email="paultag@debian.org",
