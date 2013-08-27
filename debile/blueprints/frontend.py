@@ -18,10 +18,10 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from flask import Blueprint, render_template, send_file, request
+from flask import Blueprint, render_template, send_file, request, redirect
 from flask.ext.jsonpify import jsonify
 
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, cast
 
 from lucy.orm import Package, Source, Binary, Machine, User, Job, Group
 from lucy.archive import UserRepository
@@ -396,3 +396,25 @@ def search_package():
     print packages_query
     result = [r[0] for r in packages_query]
     return jsonify(result)
+
+@frontend.route('/package/', methods=['POST'])
+@frontend.route('/package/<package_name>/', methods=['GET'])
+def package(package_name=""):
+    if request.method == 'POST':
+        # Switch a better url
+        return redirect('/package/'+request.form['package']+'/')
+
+    session = Session()
+    import logging
+    logging.basicConfig(filename='db.log')
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+    packages_query = session.query(Source, Job.type, Job.subtype, Job.arch)\
+        .join(Job, Job.package_id ==  Source.source_id)\
+        .filter(Source.name == package_name)
+#.having(Source.version.max())
+
+    return render_template('package.html', **{
+            "package_name": package_name,
+            "package": packages_query,
+        })
+
