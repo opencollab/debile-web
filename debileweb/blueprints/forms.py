@@ -1,5 +1,5 @@
-from flask.ext.wtf import Form, TextField, BooleanField
-from flask.ext.wtf import Required
+from wtforms import TextField, BooleanField, Form
+from wtforms.validators import Required
 
 class SearchPackageForm(Form):
     package = TextField('package', validators = [Required()])
