@@ -332,7 +332,11 @@ def report(job_id):
 
     job_info = {}
     job_info['job'] = job
-    job_info['job_runtime'] = job.finished_at - job.assigned_at
+    time_diff = job.finished_at - job.assigned_at
+    hours, remainder = divmod(time_diff.total_seconds(), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    job_info['job_runtime'] = '%d:%02d:%02d' % (hours, minutes, seconds)
+    job_info['job_runtime_type'] = type(job.finished_at - job.assigned_at)
     job_info['machine_link'] = "/machine/%s" % job.machine.name
     if job.package.type == "source":
         job_info['package_link'] = '/source/%s/%s/%s/%s' % (job.package.user.login, job.package.name, job.package.version, job.package.run)
