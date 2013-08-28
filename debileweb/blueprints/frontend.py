@@ -254,6 +254,7 @@ def source(package_name, owner_name, package_version, run_number):
         .options(joinedload('machine'))\
         .join(Binary, Job.package_id == Binary.package_id)\
         .filter(Binary.source_id == package.source_id)\
+        .order_by(Job.type, Binary.name)\
         .all()
 
     binaries_jobs_info = []
