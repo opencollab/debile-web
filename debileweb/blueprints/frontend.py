@@ -20,6 +20,7 @@
 from flask import Blueprint, render_template, send_file, request, redirect
 from flask.ext.jsonpify import jsonify
 
+from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
 from debilemaster.orm import Package, Source, Binary, Machine, User, Job, Group
@@ -145,14 +146,18 @@ def group_list(group_id, page=0):
         "page": page,
     })
 
-
+@frontend.route("/source/search/", methods=['POST'])
 @frontend.route("/source/<owner_name>/<package_name>/<package_version>/<int:run_number>")
-def source(package_name, owner_name, package_version, run_number):
+def source(package_name="", owner_name="fred", package_version="latest", run_number=1):
+    if request.method == 'POST':
+        # Switch a better url
+        return redirect('/source/'+owner_name+'/'+request.form['package'] +'/'+package_version + '/' + str(run_number))
+
     session = Session()
 
     # Let's compute all the versions that exists for this package
     versions_query = session.query(Source.version)\
-	    .join(Source.user)\
+        .join(Source.user)\
         .filter(Source.name == package_name)\
         .filter(User.login == owner_name)
     versions = sorted(set([e[0] for e in versions_query.all()]))
@@ -398,25 +403,4 @@ def search_package():
     print packages_query
     result = [r[0] for r in packages_query]
     return jsonify(result)
-
-@frontend.route('/package/', methods=['POST'])
-@frontend.route('/package/<package_name>/', methods=['GET'])
-def package(package_name=""):
-    if request.method == 'POST':
-        # Switch a better url
-        return redirect('/package/'+request.form['package']+'/')
-
-    session = Session()
-    import logging
-    logging.basicConfig(filename='db.log')
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-    packages_query = session.query(Source, Job.type, Job.subtype, Job.arch)\
-        .join(Job, Job.package_id ==  Source.source_id)\
-        .filter(Source.name == package_name)
-#.having(Source.version.max())
-
-    return render_template('package.html', **{
-            "package_name": package_name,
-            "package": packages_query,
-        })
 
