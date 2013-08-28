@@ -1,4 +1,6 @@
 # Copyright (c) 2012 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Leo Cavaille <leo@cavaille.net>
+# Copyright (c) 2013 Sylvestre Ledru <sylvestre@debian.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
