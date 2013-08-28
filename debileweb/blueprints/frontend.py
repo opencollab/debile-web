@@ -20,7 +20,7 @@
 from flask import Blueprint, render_template, send_file, request, redirect
 from flask.ext.jsonpify import jsonify
 
-from sqlalchemy.orm import joinedload, cast
+from sqlalchemy.orm import joinedload
 
 from debilemaster.orm import Package, Source, Binary, Machine, User, Job, Group
 from debilemaster.config import Config
