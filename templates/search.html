@@ -29,18 +29,15 @@
 
 <table><tr><td>By package</td><td>
 <form id="searchPackageForm" action="/package/" method="POST">
-    {{form.hidden_tag()}}
   <div class="ui-widget">{{form.package(size=20)}}
  <input type="submit" value="Search" /></div>
 </form>
 </td></tr>
 <tr><td>By maintainer</td><td>
 <form id="searchPackageForm" action="/package/">
-    {{form.hidden_tag()}}
   <div class="ui-widget">
  {{form.maintainer(size=20)}} <input type="submit" value="Search" />
  </div>
 </form>
 </td></tr>
 </table>
-
