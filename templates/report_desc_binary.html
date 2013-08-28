@@ -5,40 +5,40 @@
             <div class='desc_value'>{{job_info.job.type}}</div>
         </div>
         <div class='desc_line'>
-            <div class='desc_key'>builder</div>
+            <div class='desc_key'>Builder</div>
             <div class='desc_value'><a href='{{job_info.machine_link}}'>{{job_info.job.machine.name}}</a></div>
         </div>
         {% if job_info.job.type == 'build' %}
         <div class='desc_line'>
-            <div class='desc_key'>compiler setup</div>
+            <div class='desc_key'>Compiler setup</div>
             <div class='desc_value'>{{job_info.job.subtype}}</div>
         </div>
         {% endif %}
         <div class='desc_line'>
-            <div class='desc_key'>binary package</div>
+            <div class='desc_key'>Binary package</div>
             <div class='desc_value'>{{job_info.job.package.name}} {{job_info.job.package.version}}</div>
         </div>
         <div class='desc_line'>
-            <div class='desc_key'>source package</div>
+            <div class='desc_key'>Source package</div>
             <div class='desc_value'><a href="{{job_info.source_link}}">{{job_info.job.package.source.name}}</a></div>
         </div>
         <div class='desc_line'>
-            <div class='desc_key'>time processing</div>
+            <div class='desc_key'>Build time </div>
             <div class='desc_value'>{{job_info.job_runtime}}</div>
         </div>
     </div>
     <div class='block'>
 		<h3>Downloads</h3>
         <div class='desc_line'>
-            <div class='desc_key'>binary .deb</div>
+            <div class='desc_key'>Binary .deb</div>
             <div class='desc_value'><a href='{{job_info.deb_link}}'>{{job_info.job.package.deb}}</a></div>
         </div>
         <div class='desc_line'>
-            <div class='desc_key'>job log</div>
+            <div class='desc_key'>Job log</div>
             <div class='desc_value'><a href='{{log_link}}'>Text format</a></div>
         </div>
         <div class='desc_line'>
-            <div class='desc_key'>firehose report</div>
+            <div class='desc_key'>Firehose report</div>
             <div class='desc_value'><a href='{{firehose_link}}'>XML format</a></div>
         </div>
     </div>
