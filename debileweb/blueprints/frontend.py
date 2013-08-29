@@ -413,7 +413,9 @@ def search_package():
     session = Session()
     packages_query = session.query(Source.name)\
         .filter(Source.name.like(search+"%")).group_by(Source.name).limit(10)
-    print packages_query
     result = [r[0] for r in packages_query]
     return jsonify(result)
 
+@frontend.route('/about')
+def about():
+    return render_template('about.html')

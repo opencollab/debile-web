@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}About debile{% endblock %}
+
+{% block content %}
+
+Debile (formely know as debuild.me) is a project started by Paul Tagliamonte to provide a simple rebuild infrastructure for deb packages.<br />
+<br />
+During the Summer 2013, Léo Cavaillé and Sylvestre Ledru worked on a new version of debile to perform automatic and transparent rebuild of the Debian archive. The goal was twofold:<br />
+<ul>
+<li>Rebuild packages with an alternative C/C++/Objective-C compiler (clang in this case) to continue the work started on <a href="http://clang.debian.net/">clang.debian.net</a></li>
+<li>Launch static analyzers (clang analayzer/scan-build, coccinnelle, etc) on the code of the Debian packages. </li>
+</ul>
+
+The debile project now aims to:
+<ul>
+<li>Normal rebuild</li>
+<li>clang rebuild including a repository with the output</li>
+<li>DDA (Debian Debile Archive): A Debian PPA (Personal Package Archives from Ubuntu)</li>
+<li>Static analyzers on the code</li>
+<li>Testing of transitions (unstable => testing) - TODO</li>
+</ul>
+
+The name <i>debile</i> has been proposed by <a href="http://upsilon.cc/~zack/">Stefano Zacchiroli</a>. It can mean "DEBian Infrastructure LayEr".
+
+{% endblock %}
