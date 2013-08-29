@@ -241,6 +241,7 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
     source_jobs = session.query(Job)\
         .options(joinedload('machine'))\
         .filter(Job.package == package)\
+        .order_by(Job.type, Job.subtype)\
         .all()
 
     total = len(source_jobs)
@@ -267,7 +268,7 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
         .options(joinedload('machine'))\
         .join(Binary, Job.package_id == Binary.package_id)\
         .filter(Binary.source_id == package.source_id)\
-        .order_by(Job.type, Binary.name)\
+        .order_by(Job.type, Job.subtype, Binary.name)\
         .all()
 
     binaries_jobs_info = []
