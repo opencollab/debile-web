@@ -250,11 +250,12 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
     for j in source_jobs:
         info = {}
         info['job'] = j
+        info['job_link'] = '/report/%s#full_log' % j.id
         if j.type == "clanganalyzer":
             # Special case (I know) for clang to point directly to the HTML report
-            info['job_link'] = '/static-job-reports/%s/scan-build/' % j.id
+            info['job_report_link'] = '/static-job-reports/%s/scan-build/' % j.id
         else:
-            info['job_link'] = '/report/%s#full_log' % j.id
+            info['job_report_link'] = info['job_link']
         if j.machine:
             info['job_machine_link'] = '/machine/%s' % j.machine.name
         if not j.is_finished():
