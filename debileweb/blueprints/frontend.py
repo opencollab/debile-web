@@ -164,6 +164,12 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
         .filter(User.login == owner_name)
     versions = sorted(set([e[0] for e in versions_query.all()]))
 
+    if len(versions) == 0:
+        return render_template('source-not-found.html', **{
+                "package_name": package_name
+                })
+
+
     latest_version = versions[-1]
     if package_version == 'latest':
         this_version = latest_version
