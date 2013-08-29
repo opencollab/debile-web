@@ -56,17 +56,14 @@
     {% if multiple_versions %}
     <div class='block'>
     <h3>Versions</h3>
-	<p>
-        {% if latest_version == package.version %}
-        This is the latest version of debile available for this package, but you can access previous versions:
-        {% else %}
-        This package has been processed for multiple versions, see others:
-        {% endif %}
-	</p>
         <div class='package_versions_menu'>
             {% for version, link in versions_info %}
             <div class='package_versions_menu_element'>
-                <a href='{{link}}'>{{version}}{% if loop.last %} (latest){% endif %}</a>
+	      {% if version == package.version %}
+	      {{version}}{% if loop.last %} (latest){% endif %}
+	      {% else %}
+              <a href='{{link}}'>{{version}}{% if loop.last %} (latest){% endif %}</a>
+	      {% endif %}
             </div>
             {% endfor %}
         </div>
