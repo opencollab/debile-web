@@ -31,7 +31,7 @@
 	      {% if jobinfo.job.type == "build" %} {# Build of the package package #}
 	          {% if jobinfo.job.failed %}Failed{% else %}Uploaded{% endif %}
 	      {% else %} {# Analyzers #}
-                  {% if jobinfo.job.failed %}<a href='{{jobinfo.job_link}}#full_log'>✗ Errors found</a>{% else %}✓ Nothing found{% endif %}
+                  {% if jobinfo.job.failed %}<a href='{{jobinfo.job_link}}'>✗ Errors found</a>{% else %}✓ Nothing found{% endif %}
 	      {% endif %}
 	      {% else %}
 	      Needs-Build
