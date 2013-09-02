@@ -354,7 +354,7 @@ def report(job_id):
     time_diff = job.finished_at - job.assigned_at
     hours, remainder = divmod(time_diff.total_seconds(), 3600)
     minutes, seconds = divmod(remainder, 60)
-    job_info['job_runtime'] = '%d:%02d:%02d' % (hours, minutes, seconds)
+    job_info['job_runtime'] = '%dh %02dm %02ds' % (hours, minutes, seconds)
     job_info['job_runtime_type'] = type(job.finished_at - job.assigned_at)
     job_info['machine_link'] = "/machine/%s" % job.machine.name
     if job.package.type == "source":
