@@ -250,9 +250,10 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
     for j in source_jobs:
         info = {}
         info['job'] = j
-        info['job_link'] = '/report/%s#full_log' % j.id
+        info['job_link'] = '/report/%s/%s/%s/%s#full_log' % (package_name, this_version, j.type, j.id)
         if j.type == "clanganalyzer":
             # Special case (I know) for clang to point directly to the HTML report
+            # TODO: update the path to a nicer one (like job_link)
             info['job_report_link'] = '/static-job-reports/%s/scan-build/' % j.id
         else:
             info['job_report_link'] = info['job_link']
@@ -280,7 +281,7 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
     for j in binaries_jobs:
         info = {}
         info['job'] = j
-        info['job_link'] = '/report/%s' % j.id
+        info['job_link'] = '/report/%s/%s/%s/%s#full_log' % (package_name, this_version, j.type, j.id)
         if j.machine:
             info['job_machine_link'] = '/machine/%s' % j.machine.name
         if not j.is_finished():
@@ -338,7 +339,8 @@ def hacker(hacker_login):
 
 
 @frontend.route("/report/<job_id>/")
-def report(job_id):
+@frontend.route("/report/<package_name>/<version>/<job_type>/<job_id>/")
+def report(job_id, package_name="", version="", job_type=""):
 # TODO : design architecture Pending, firewose ?
 #    report = Report.load(report_id)
     config = Config()
