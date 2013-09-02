@@ -111,7 +111,7 @@ def index():
 @frontend.route("/sources/")
 def source_list():
     session = Session()
-    count = 1000
+    count = 100
     sources = session.query(Source)\
         .options(joinedload(Source.user))\
         .options(joinedload(Source.group))\
