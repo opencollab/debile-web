@@ -12,7 +12,7 @@
             <td>
                 <a href = '{{jobinfo.package_link}}' >{{jobinfo.job.package.name}}</a><br />{{jobinfo.job.package.version}}
             </td>
-            <td>{{jobinfo.job.type}}</td>
+            <td>{{jobinfo.job.type}}{% if jobinfo.job.subtype %}/{{jobinfo.job.subtype}}{% endif %}</td>
             <td>{{jobinfo.job.arch}}</td>
             <td>{{jobinfo.job.suite}}</td>
             <td>{{jobinfo.job.assigned_at|ago}}</td>
