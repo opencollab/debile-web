@@ -19,13 +19,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
+
 from flask import Blueprint, render_template, send_file, request, redirect
 from flask.ext.jsonpify import jsonify
 
-from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
-from debilemaster.orm import Package, Source, Binary, Machine, User, Job, Group
+from debilemaster.orm import Source, Binary, Machine, User, Job, Group
 from debilemaster.config import Config
 from debilemaster.server import Session
 from debilemaster.archive import UserRepository
@@ -69,24 +69,26 @@ def location_display(obj):
     return "%s:%s" % (obj['file']['givenpath'],
                       obj['point']['line'])
 
+
 def get_package_link(p):
     if p.type == "source":
         return "/source/%s/%s/%s/%s" % (p.user.login, p.name, p.version, p.run)
     else:
         return "/notimplementedyet"
 
+
 def get_machine_link(m):
     return "/machine/%s" % m.name
+
 
 @frontend.route("/")
 def index():
     session = Session()
     active_jobs = session.query(Job)\
         .options(joinedload('machine'))\
-        .filter(Job.machine != None)\
-        .filter(Job.finished_at == None)\
+        .filter(Job.machine is not None)\
+        .filter(Job.finished_at is None)\
         .all()
-    machines = session.query(Machine).options(joinedload('jobs')).all()
     active_jobs_info = []
     for j in active_jobs:
         info = {}
@@ -97,7 +99,7 @@ def index():
         active_jobs_info.append(info)
 
     pending_jobs = session.query(Job)\
-        .filter(Job.assigned_at == None)\
+        .filter(Job.assigned_at is None)\
         .count()
 
     form = SearchPackageForm()
@@ -126,7 +128,6 @@ def source_list():
         info['user_link'] = "/hacker/%s" % s.user.login
         sources_info.append(info)
 
-
     return render_template('source_list.html', **{
         "sources_info": sources_info,
         "count": count,
@@ -137,7 +138,7 @@ def source_list():
 @frontend.route("/group/<group_id>/<page>/")
 def group_list(group_id, page=0):
     page = int(page)
-	# FIXME : unsafe code, catch exceptions
+    # FIXME : unsafe code, catch exceptions
     session = Session()
     g = session.query(Group).filter(Group.name == group_id).one()
     sources = session.query(Source).filter(Source.group == g).order_by(Source.created_at.asc()).paginate(page, per_page=15)
@@ -148,12 +149,13 @@ def group_list(group_id, page=0):
         "page": page,
     })
 
+
 @frontend.route("/source/search/", methods=['POST'])
 @frontend.route("/source/<owner_name>/<package_name>/<package_version>/<int:run_number>")
 def source(package_name="", owner_name="fred", package_version="latest", run_number=1):
     if request.method == 'POST':
         # Switch a better url
-        return redirect('/source/'+owner_name+'/'+request.form['package'] +'/'+package_version + '/' + str(run_number))
+        return redirect('/source/' + owner_name + '/' + request.form['package'] + '/' + package_version + '/' + str(run_number))
 
     session = Session()
 
@@ -169,7 +171,6 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
                 "package_name": package_name
                 })
 
-
     latest_version = versions[-1]
     if package_version == 'latest':
         this_version = latest_version
@@ -178,7 +179,7 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
 
     # All runs that exist for this version
     runs_query = session.query(Source.run)\
-	    .join(Source.user)\
+        .join(Source.user)\
         .filter(Source.name == package_name)\
         .filter(User.login == owner_name)\
         .filter(Source.version == this_version)\
@@ -203,7 +204,7 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
 
     try:
         package = package_query.one()
-    except (NoResultFound, MultipleResultsFound):
+    except:
         raise Exception("This resource does not exist")
 
     # Compute description section
@@ -221,7 +222,11 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
     runs_info = []
     if multiple_runs:
         for r in runs:
-            href = "/source/%s/%s/%s/%s" % (owner_name, package_name, package_version, r)
+            href = "/source/%s/%s/%s/%s" % (owner_name,
+                                            package_name,
+                                            package_version,
+                                            r
+                                            )
             runs_info.append((r, href))
 
     # Fill in the version sections
@@ -303,7 +308,7 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
         "latest_version": latest_version,
         "versions_info": versions_info,
         "package": package,
-        "package_job_status" : (total, unfinished),
+        "package_job_status": (total, unfinished),
         "source_jobs_info": source_jobs_info,
         "binaries_jobs_info": binaries_jobs_info
     })
@@ -348,7 +353,7 @@ def report(job_id, package_name="", version="", job_type=""):
     job_query = session.query(Job).filter(Job.id == job_id)
     try:
         job = job_query.one()
-    except (NoResultFound, MultipleResultsFound):
+    except:
         raise Exception("This resource does not exist")
 
     job_info = {}
@@ -362,12 +367,12 @@ def report(job_id, package_name="", version="", job_type=""):
     if job.package.type == "source":
         job_info['package_link'] = '/source/%s/%s/%s/%s' % (job.package.user.login, job.package.name, job.package.version, job.package.run)
     else:
-        pool = os.path.join(config.get('paths', 'pool_url'), str(job.package.source.package_id),job.package.arch, job.package.deb)
+        pool = os.path.join(config.get('paths', 'pool_url'), str(job.package.source.package_id), job.package.arch, job.package.deb)
         job_info['deb_link'] = pool
         job_info['source_link'] = '/source/%s/%s/%s/%s' % (job.package.source.user.login, job.package.source.name, job.package.source.version, job.package.source.run)
 
     log_path = os.path.join(config.get('paths', 'jobs_path'),
-                        job_id, 'log.txt')
+                            job_id, 'log.txt')
 
     firehose_link = "/static-job-reports/%s/firehose.xml" % job_id
     log_link = "/static-job-reports/%s/log.txt" % job_id
@@ -390,24 +395,27 @@ def report(job_id, package_name="", version="", job_type=""):
         "log": log,
     })
 
+
 @frontend.route("/report/firehose/<job_id>/")
 def report_firehose(job_id):
     config = Config()
     firehose_path = os.path.join(config.get('paths', 'jobs_path'),
-                        job_id, 'firehose.xml')
+                                 job_id, 'firehose.xml')
 
     if os.path.exists(firehose_path):
-        return send_file(firehose_path, mimetype='application/xml', as_attachment=True, attachment_filename='firehose.xml')
+        return send_file(firehose_path, mimetype='application/xml',
+                         as_attachment=True, attachment_filename='firehose.xml')
+
 
 @frontend.route("/report/log/<job_id>/")
 def report_log(job_id):
     config = Config()
     log_path = os.path.join(config.get('paths', 'jobs_path'),
-                        job_id, 'log')
+                            job_id, 'log')
 
     if os.path.exists(log_path):
-        return send_file(log_path, mimetype='text/plain', as_attachment=True, attachment_filename='log.txt')
-
+        return send_file(log_path, mimetype='text/plain', as_attachment=True,
+                         attachment_filename='log.txt')
 
 
 @frontend.route('/_search_package')
@@ -418,6 +426,7 @@ def search_package():
         .filter(Source.name.like(search+"%")).group_by(Source.name).limit(10)
     result = [r[0] for r in packages_query]
     return jsonify(result)
+
 
 @frontend.route('/about')
 def about():
