@@ -53,3 +53,5 @@ cd /etc/nginx/sites-enabled && ln -s ../sites-available/debile
     cd ~/debile-web
     python app.py
 
+* To connect to the database:
+psql debile_master
