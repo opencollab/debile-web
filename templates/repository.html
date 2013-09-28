@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Repository{% endblock %}
+
+{% block content %}
+<h1>{{worker.name}}</h1>
+
+{{worker.name}}'s GPG key is <code>{{worker.gpg_fingerprint}}</code>.
+
+<h2>Repositories of packages</h2>
+Choose to add one of the following mirrors to <strong>/etc/apt/sources.list.d/debile.list</strong>
+<pre>
+{{apt_binary_list}}
+</pre>
+
+<h2>Source repository</h2>
+Add the following mirror(s) to <strong>/etc/apt/sources.list.d/debile.list</strong>
+<pre>
+{{apt_source_list}}
+</pre>
+{% endblock %}
