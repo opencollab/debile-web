@@ -187,6 +187,13 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
         .order_by(Source.run.asc())
     runs = [e[0] for e in runs_query.all()]
 
+    if len(runs) == 0:
+        return render_template('source-not-found.html', **{
+                "package_name": package_name,
+                "version": this_version
+                })
+
+    
     latest_run = runs[-1]
     if run_number == '0':
         this_run = latest_run
