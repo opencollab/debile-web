@@ -1,3 +1,7 @@
+* add the support of pylint for python
+* add support of roodi for ruby http://pts.debian.net/pkg/roodi
+* add support of findbugs for java
+
 * Need real services (not "python foo.py"). This applies also for lucy, fred, ethel
 * When we just did a new install and we don't have anything. Display some information like "here is what you should do next"
 * Add ajax on the package search
