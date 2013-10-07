@@ -126,7 +126,8 @@ def source_list():
         info['source'] = s
         info['source_link'] = "/source/%s/%s/%s/%s" % (s.user.login, s.name, s.version, s.run)
         info['group_link'] = "/group/%s" % s.group.name
-        info['user_link'] = "/hacker/%s" % s.user.login
+        info['user_link'] = "/worker/%s" % s.user.login
+        info['user_repository_link'] = "/repository/%s" % s.user.login
         sources_info.append(info)
 
     return render_template('source_list.html', **{
@@ -187,6 +188,13 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
         .order_by(Source.run.asc())
     runs = [e[0] for e in runs_query.all()]
 
+    if len(runs) == 0:
+        return render_template('source-not-found.html', **{
+                "package_name": package_name,
+                "version": this_version
+                })
+
+    
     latest_run = runs[-1]
     if run_number == '0':
         this_run = latest_run
@@ -210,7 +218,9 @@ def source(package_name="", owner_name="fred", package_version="latest", run_num
 
     # Compute description section
     desc = {}
-    desc['user_link'] = "/hacker/%s" % package.user.login
+    desc['user_link'] = "/worker/%s" % package.user.login
+    desc['user_repository_link'] = "/repository/%s" % package.user.login
+
     desc['run'] = run_number
     # desc['pool_link'] =
 
@@ -325,20 +335,32 @@ def machine(machine_name):
     })
 
 
-@frontend.route("/hacker/<hacker_login>")
-def hacker(hacker_login):
+@frontend.route("/worker/<worker_login>")
+def worker(worker_login):
     session = Session()
-    # FIXME : unsafe code, catch exceptions
-    user = session.query(User).filter(User.login == hacker_login).one()
+    # FIXME : unsafe code, catch exceptions                                                                            
+    user = session.query(User).filter(User.login == worker_login).one()
 
     ur = UserRepository(user)
     dput_upload_profile = ur.generate_dputprofile()
+
+    return render_template('worker.html', **{
+        "worker": user,
+        "dput_upload_profile": dput_upload_profile
+    })
+
+@frontend.route("/repository/<worker_login>")
+def repository(worker_login):
+    session = Session()
+    # FIXME : unsafe code, catch exceptions
+    user = session.query(User).filter(User.login == worker_login).one()
+
+    ur = UserRepository(user)
     apt_binary_list = ur.generate_aptbinarylist()
     apt_source_list = ur.generate_aptsourcelist()
 
-    return render_template('hacker.html', **{
-        "hacker": user,
-        "dput_upload_profile": dput_upload_profile,
+    return render_template('repository.html', **{
+        "worker": user,
         "apt_binary_list": apt_binary_list,
         "apt_source_list": apt_source_list
     })
