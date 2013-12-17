@@ -1,0 +1,10 @@
+
+{% macro render_packages_prefixes(prefixes) %}
+  {%- for prefix in prefixes %}
+{#    <a href="{{ url_for('prefix_html', prefix=prefix) }}">{{ prefix }}</a>
+#}
+    <a href="/prefix/{{ prefix }}">{{ prefix }}</a>
+
+  {%- endfor %}
+{% endmacro %}
+

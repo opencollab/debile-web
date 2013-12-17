@@ -24,6 +24,7 @@ from flask import Blueprint, render_template, send_file, request, redirect
 from flask.ext.jsonpify import jsonify
 
 from sqlalchemy.orm import joinedload
+from sqlalchemy.sql.expression import bindparam
 
 from debilemaster.orm import Source, Binary, Machine, User, Job, Group
 from debilemaster.config import Config
@@ -37,6 +38,7 @@ from datetime import timedelta
 import datetime as dt
 import os.path
 from forms import SearchPackageForm
+from consts import PREFIXES_DEFAULT
 
 frontend = Blueprint('frontend', __name__, template_folder='templates')
 
@@ -69,6 +71,15 @@ def location_display(obj):
     return "%s:%s" % (obj['file']['givenpath'],
                       obj['point']['line'])
 
+
+
+def get_packages_prefixes():
+    """
+    returns the packages prefixes (a, b, ..., liba, libb, ..., y, z)
+    Note that this could be computed from the database ... but since we
+    are rebuilding Debian, we will have all letters + lib*
+    """
+    return PREFIXES_DEFAULT
 
 def get_package_link(p):
     if p.type == "source":
@@ -104,12 +115,14 @@ def index():
         .count()
 
     form = SearchPackageForm()
+    packages_prefixes = get_packages_prefixes()
+
     return render_template('index.html', **{
         "active_jobs_info": active_jobs_info,
         "pending_jobs": pending_jobs,
+	"packages_prefixes": packages_prefixes,
         "form": form
     })
-
 
 @frontend.route("/sources/")
 def source_list():
@@ -135,6 +148,34 @@ def source_list():
         "count": count,
     })
 
+
+
+@frontend.route("/prefix/<prefix_id>/")
+@frontend.route("/prefix/<prefix_id>/<page>/")
+def prefix_list(prefix_id, page=0):
+    page = int(page)
+
+    # FIXME : unsafe code, catch exceptions
+    session = Session()
+    sources = session.query(Source)\
+        .filter(Source.name.startswith(prefix_id))\
+        .distinct(Source.name)\
+        .order_by(Source.name.desc())
+
+
+
+    sources_info = []
+    for s in sources:
+        info = {}
+        info['source'] = s
+        info['source_link'] = "/source/%s/%s/%s/%s" % (s.user.login, s.name, "latest", s.run)
+        sources_info.append(info)
+
+    return render_template('prefix.html', **{
+        "sources": sources_info,
+        "prefix": prefix_id,
+        "page": page,
+    })
 
 @frontend.route("/group/<group_id>/")
 @frontend.route("/group/<group_id>/<page>/")

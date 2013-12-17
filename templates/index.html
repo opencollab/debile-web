@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 
+{% import "macros.inc.html" as macros %}
+
 {% block title %}About{% endblock %}
 
 {% block content %}
 
 This experimental infrastructure aims to provide a generic rebuild platform.<br />
 Normal build, custom builds (clang based) or static analyzers (coccinelle, scan-build, etc) are managed through this infrastructure.<br /><br />
+
+<b>Work in progress</b>
 {% include "search.html" %}
 <br />
 
@@ -15,6 +19,10 @@ Normal build, custom builds (clang based) or static analyzers (coccinelle, scan-
 
 <h1>Pending jobs</h1><br />
 There are currently {{pending_jobs}} jobs to assign.<br />
+<br />
+Browse by prefix:
+{{ macros.render_packages_prefixes(packages_prefixes) }}
+<br />
 <br />Last 
 <a href = '/sources' >uploads</a>
 
