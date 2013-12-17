@@ -446,7 +446,7 @@ def search_package():
     search = request.args.get('search[term]')
     session = Session()
     packages_query = session.query(Source.name)\
-        .filter(Source.name.like(search+"%")).group_by(Source.name).limit(10)
+        .filter(Source.name.startswith(search)).group_by(Source.name).limit(10)
     result = [r[0] for r in packages_query]
     return jsonify(result)
 
