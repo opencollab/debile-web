@@ -19,6 +19,20 @@
       $("#searchPackageForm").submit(); }
   })
   });
+
+  $(function() {
+  $( "#maintainer" ).autocomplete({
+    source: function( request, response ) {
+        $.getJSON($SCRIPT_ROOT + "/_search_maintainer", {
+          search: request
+        }, response);
+    },
+    select: function(event, ui) {
+      $("#maintainer").val(ui.item.label);
+      $("#searchMaintainerForm").submit(); }
+  })
+  });
+
   </script>
 
   <style>
@@ -30,15 +44,14 @@
 <table><tr><td>By package</td><td>
 <form id="searchPackageForm" action="/source/search/" method="POST">
   <div class="ui-widget">{{form.package(size=20)}}
- <input type="submit" value="Search" /></div>
+  <input type="submit" value="Search" /></div>
 </form>
 </td></tr>
-<!--
 <tr><td>By maintainer</td><td>
-<form id="searchPackageForm" action="/package/">
-  <div class="ui-widget">
- {{form.maintainer(size=20)}} <input type="submit" value="Search" />
+<form id="searchMaintainerForm" action="/maintainer/search/" method="POST">
+  <div class="ui-widget">{{form.maintainer(size=20)}}
+  <input type="submit" value="Search" />
  </div>
 </form>
-</td></tr>-->
+</td></tr>
 </table>

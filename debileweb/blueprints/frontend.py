@@ -23,8 +23,10 @@
 from flask import Blueprint, render_template, send_file, request, redirect
 from flask.ext.jsonpify import jsonify
 
+from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import bindparam
+
 
 from debilemaster.orm import Source, Binary, Machine, User, Job, Group
 from debilemaster.config import Config
@@ -37,6 +39,7 @@ from humanize.time import naturaldelta
 from datetime import timedelta
 import datetime as dt
 import os.path
+import re
 from forms import SearchPackageForm
 from consts import PREFIXES_DEFAULT
 
@@ -150,15 +153,25 @@ def source_list():
 
 
 
-@frontend.route("/prefix/<prefix_id>/")
-def prefix_list(prefix_id, page=0):
-    page = int(page)
+@frontend.route("/maintainer/<nameItem>/", methods=['POST','GET'])
+@frontend.route("/prefix/<nameItem>/")
+def list_packages(nameItem=0):
+    if request.method == 'POST':
+        # Switch a better url
+        return redirect('/maintainer/' + re.search(r".*<(.*)>",request.form['maintainer']).group(1) + '/')
 
     session = Session()
-    sources = session.query(Source)\
-        .filter(Source.name.startswith(prefix_id))\
-        .distinct(Source.name)\
-        .order_by(Source.name.desc(), Source.version.desc())
+    if request.path.startswith("/maintainer/"):
+        # Maintainer
+        sources = session.query(Source)\
+            .filter(Source.maintainer.contains(nameItem))\
+            .distinct(Source.name)\
+            .order_by(Source.name.desc(), Source.version.desc())
+    else:
+        sources = session.query(Source)\
+            .filter(Source.name.startswith(nameItem))\
+            .distinct(Source.name)\
+            .order_by(Source.name.desc(), Source.version.desc())
 
     sources_info = []
     for s in sources:
@@ -169,8 +182,7 @@ def prefix_list(prefix_id, page=0):
 
     return render_template('prefix.html', **{
         "sources": sources_info,
-        "prefix": prefix_id,
-        "page": page,
+        "prefix": nameItem,
     })
 
 @frontend.route("/group/<group_id>/")
@@ -485,6 +497,17 @@ def search_package():
     packages_query = session.query(Source.name)\
         .filter(Source.name.startswith(search)).group_by(Source.name).limit(10)
     result = [r[0] for r in packages_query]
+    return jsonify(result)
+
+@frontend.route('/_search_maintainer')
+def search_maintainer():
+    search = request.args.get('search[term]')
+    session = Session()
+    print "foo" + search
+    maintainers_query = session.query(Source.maintainer)\
+        .filter(Source.maintainer.contains(search))\
+        .group_by(Source.maintainer).limit(10)
+    result = [r[0] for r in maintainers_query]
     return jsonify(result)
 
 
