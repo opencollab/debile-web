@@ -151,18 +151,14 @@ def source_list():
 
 
 @frontend.route("/prefix/<prefix_id>/")
-@frontend.route("/prefix/<prefix_id>/<page>/")
 def prefix_list(prefix_id, page=0):
     page = int(page)
 
-    # FIXME : unsafe code, catch exceptions
     session = Session()
     sources = session.query(Source)\
         .filter(Source.name.startswith(prefix_id))\
         .distinct(Source.name)\
-        .order_by(Source.name.desc())
-
-
+        .order_by(Source.name.desc(), Source.version.desc())
 
     sources_info = []
     for s in sources:
