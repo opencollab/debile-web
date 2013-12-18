@@ -1,11 +1,13 @@
+* Update of the bottom links (Source Code)
+
 * add the support of pylint for python
 * add support of roodi for ruby http://pts.debian.net/pkg/roodi
 * add support of findbugs for java
 
-* Need real services (not "python foo.py"). This applies also for lucy, fred, ethel
 * When we just did a new install and we don't have anything. Display some information like "here is what you should do next"
 * Make sure that any service works again after a service is down (reboot, etc)
 * Package list per maintainer
 * List per analyzer
 * Graphs on the evolution
 * information on the node (cat /proc/cpuinfo )
+
