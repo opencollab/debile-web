@@ -1,4 +1,4 @@
-# Copyright (c) 2012 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Sylvestre Ledru <sylvestre@debian.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,13 +18,10 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from flask import Flask
-from debileweb.blueprints.frontend import frontend
-
-app = Flask(__name__)
-app.config.from_object('config')
-app.register_blueprint(frontend)
+from wtforms import TextField, Form
+from wtforms.validators import Required
 
 
-if __name__ == '__main__':
-    app.run(debug=False)
+class SearchPackageForm(Form):
+    package = TextField('package', validators=[Required()])
+    maintainer = TextField('maintainer', validators=[Required()])

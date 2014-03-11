@@ -1,11 +1,16 @@
     <table>
         <tr>
             <th>Type</th>
-            <th>Status</th>
+            <th>Version</th>
             <th>Machine</th>
             <th>Results</th>
         </tr>
+{% set typebuild = '' %}
+
 {% for jobinfo in jobinfolist %}
+{# Add an empty line between the normal build + static analyzers #}
+{% if typebuildprev == "build" and typebuildprev != jobinfo.job.type %}<tr><td colspan="4">&nbsp;</td></tr>{% endif %}
+
         <tr class='job {% if jobinfo.job.is_finished() %}{% if jobinfo.job.failed %}failed{% else %}success{% endif %}{% endif %}'>
             <td>
                 {% if jobinfo.job.is_finished() %}
@@ -14,7 +19,7 @@
                 {{jobinfo.job.type}}{% if jobinfo.job.subtype %}/{{jobinfo.job.subtype}}{% endif %} <em>({{jobinfo.job.arch}})</em>
                 {% endif %}
             </td>
-            <td>{{jobinfo.status}}</td>
+            <td>{{package.version}}</td>
             <td>
                 {% if jobinfo.job.machine %}
                 <a href = '{{jobinfo.job_machine_link}}' >{{jobinfo.job.machine.name}}</a>
@@ -22,7 +27,19 @@
 				not assigned yet
                 {% endif %}
             </td>
-            <td>{% if jobinfo.job.is_finished() %}{% if jobinfo.job.failed %}✗ Errors found{% else %}✓ Nothing found{% endif %}{% endif %}</td>
+            <td>{% if jobinfo.job.is_finished() %}
+	      {% if jobinfo.job.type == "build" %} {# Build of the package package #}
+	          {% if jobinfo.job.failed %}Failed{% else %}Uploaded{% endif %}
+	      {% else %} {# Analyzers #}
+                  {% if jobinfo.job.failed %}<a href='{{jobinfo.job_report_link}}'>✗ Errors found</a>{% else %}✓ Nothing found{% endif %}
+	      {% endif %}
+	      {% else %}
+	      Needs-Build
+	      {% endif %}
+	    </td>
+
+{% set typebuildprev = jobinfo.job.type %}
+
         </tr>
 {% endfor %}
 {% if jobinfolist|length == 0 %}

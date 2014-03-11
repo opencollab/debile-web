@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block title %}Package List{% endblock %}
+
+{% block content %}
+    <h1>Package list: '{{prefix}}'</h1>
+    {% include "prefix_list.html" %}
+{% endblock %}

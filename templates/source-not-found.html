@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Package not found{% endblock %}
+
+{% block content %}
+
+Package <i>{{ package_name }}</i> {% if version %} {{ version }} {% endif %} not found
+{% if version %}<br />
+Try the <a href="/source/fred/{{ package_name }}/latest/1">latest release</a>
+{% endif %}
+
+{% endblock %}

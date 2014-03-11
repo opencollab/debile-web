@@ -1,0 +1,37 @@
+    <table class = 'zebra'>
+        <tr>
+            <th>What</th>
+            <th>Latest version</th>
+{#            <th>Uploader</th>
+            <th>Status</th>#}
+        </tr>
+{% for info in sources %}
+        <tr>
+            <td>
+                <a href = '{{info.source_link}}' >
+{{info.source.name}}
+</td>
+<td>
+{{info.source.version}}
+</td>
+
+{#                    {{info.source.name}}/{{info.source.version}}{% if info.source.run > 1 %} - run {{info.source.run}}{% endif %}
+
+                </a>
+            </td>
+            <td>
+                {% if info.source.group %}
+                <a href = '{{info.group_link}}' >
+                    {{info.source.group.name}}
+                </a>
+                {% endif %}
+            </td>
+            <td>
+                <a href = '{{info.user_link}}' >
+                    {{info.source.user.name}}
+                </a>
+            </td>
+        </tr>
+#}
+{% endfor %}
+    </table>

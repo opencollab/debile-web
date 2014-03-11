@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Package {{package_name}}{% endblock %}
+
+{% block content %}
+Package <i>{{package_name}}</i> summary
+    <table>
+        <tr>
+            <th>Worker</th>
+	    <th>Version</th>
+            <th>Status</th>
+            <th>Results</th>
+        </tr>
+{% for pkg in package %}
+	<tr>
+	  <td>
+	    {{pkg.type}} ({{pkg.arch}}) {% if pkg.subtype != None %} - {{pkg.subtype}} {% endif %}
+	  </td>
+	  <td>
+	    {{pkg.Source.version}}
+	  </td>
+	  <td>
+	  </td>
+	  <td>
+	  </td>
+  
+	  </tr>
+	
+{% endfor %}
+</table>
+
+{% endblock %}

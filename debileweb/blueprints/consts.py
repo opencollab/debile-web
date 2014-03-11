@@ -1,4 +1,4 @@
-# Copyright (c) 2012 Paul Tagliamonte <paultag@debian.org>
+# Copyright (c) 2013 Sylvestre Ledru <sylvestre@debian.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,13 +18,11 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from flask import Flask
-from debileweb.blueprints.frontend import frontend
+PREFIXES_DEFAULT = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
+                    'f', 'g', 'h', 'i', 'j', 'k', 'l', 'lib3', 'liba', 'libb',
+                    'libc', 'libd', 'libe', 'libf', 'libg', 'libh', 'libi',
+                    'libj', 'libk', 'libl', 'libm', 'libn', 'libo', 'libp',
+                    'libq', 'libr', 'libs', 'libt', 'libu', 'libv', 'libw',
+                    'libx', 'liby', 'libz', 'm', 'n', 'o', 'p', 'q', 'r', 's',
+                    't', 'u', 'v', 'w', 'x', 'y', 'z']
 
-app = Flask(__name__)
-app.config.from_object('config')
-app.register_blueprint(frontend)
-
-
-if __name__ == '__main__':
-    app.run(debug=False)
