@@ -1,6 +1,7 @@
 # Copyright (c) 2012 Paul Tagliamonte <paultag@debian.org>
 # Copyright (c) 2013 Leo Cavaille <leo@cavaille.net>
 # Copyright (c) 2013 Sylvestre Ledru <sylvestre@debian.org>
+# Copyright (c) 2014 Jon Severinsson <jon@severinsson.net>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,28 +21,21 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from flask import Blueprint, render_template, send_file, request, redirect
+from flask import Blueprint, render_template, request, redirect
 from flask.ext.jsonpify import jsonify
-
-from sqlalchemy import func
 from sqlalchemy.orm import joinedload
-from sqlalchemy.sql.expression import bindparam
 
+from debile.master.utils import make_session
+from debile.master.orm import (Person, Builder, Suite, Component, Arch, Check,
+                               Group, GroupSuite, Source, Maintainer, Binary,
+                               Job, JobDependencies, Result)
 
-from debilemaster.orm import Source, Binary, Machine, User, Job, Group
-from debilemaster.config import Config
-from debilemaster.server import Session
-from debilemaster.archive import UserRepository
+from debileweb.blueprints.forms import SearchPackageForm
+from debileweb.blueprints.consts import PREFIXES, ENTRIES_PER_PAGE, ENTRIES_PER_LIST_PAGE
 
+from datetime import datetime
 from humanize import naturaltime
-from humanize.time import naturaldelta
-
-from datetime import timedelta
-import datetime as dt
-import os.path
-import re
-from forms import SearchPackageForm
-from consts import PREFIXES_DEFAULT
+import os
 
 frontend = Blueprint('frontend', __name__, template_folder='templates')
 
@@ -50,442 +44,549 @@ frontend = Blueprint('frontend', __name__, template_folder='templates')
 def ago_display(when):
     if when is None:
         return "never"
-    td = dt.datetime.utcnow() - when
+    td = datetime.utcnow() - when
     return naturaltime(td)
-
-
-def get_packages_prefixes():
-    """
-    returns the packages prefixes (a, b, ..., liba, libb, ..., y, z)
-    Note that this could be computed from the database ... but since we
-    are rebuilding Debian, we will have all letters + lib*
-    """
-    return PREFIXES_DEFAULT
-
-def get_package_link(p):
-    if p.type == "source":
-        return "/source/%s/%s/%s/%s" % (p.user.login, p.name, p.version, p.run)
-    else:
-        return "/notimplementedyet"
-
-
-def get_machine_link(m):
-    return "/machine/%s" % m.name
 
 
 @frontend.route("/")
 def index():
-    session = Session()
-    active_jobs = session.query(Job)\
-        .options(joinedload('machine'))\
-        .filter(Job.machine != None)\
-        .filter(Job.finished_at == None)\
+    session = make_session()
+
+    groups = session.query(Group)\
+        .order_by(Group.name.asc())\
         .all()
-    machines = session.query(Machine).options(joinedload('jobs')).all()
-    active_jobs_info = []
-    for j in active_jobs:
+    builders = session.query(Builder)\
+        .order_by(Builder.name.asc())\
+        .all()
+
+    groups_info = []
+    for group in groups:
         info = {}
-        info['job'] = j
-        info['package_link'] = get_package_link(j.package)
-        if j.machine:
-            info['machine_link'] = get_machine_link(j.machine)
-        active_jobs_info.append(info)
+        info['group'] = group
+        info['group_link'] = "/group/%s" % group.name
+        info['maintainer_link'] = "/user/%s" % group.maintainer.email
+        groups_info.append(info)
+
+    builders_info = []
+    for builder in builders:
+        info = {}
+        info['builder'] = builder
+        info['builder_link'] = "/builder/%s" % builder.name
+        info['maintainer_link'] = "/user/%s" % group.maintainer.email
+        jobs = session.query(Job).join(Source)\
+            .filter(Job.assigned_at != None)\
+            .filter(Job.finished_at == None)\
+            .filter(Job.builder == builder)\
+            .order_by(Job.id.desc())\
+            .all()
+        jobs_info = []
+        for job in jobs:
+            jobinfo = {}
+            jobinfo['job'] = job
+            jobinfo['job_link'] = "/job/%s/%s/%s/%s" % \
+                (job.group.name, job.source.name, job.source.version, job.id)
+            jobinfo['source_link'] = "/source/%s/%s/%s" % \
+                (job.group.name, job.source.name, job.source.version)
+            jobs_info.append(jobinfo)
+        info['jobs_info'] = jobs_info
+        builders_info.append(info)
 
     pending_jobs = session.query(Job)\
         .filter(Job.assigned_at == None)\
         .count()
-
     form = SearchPackageForm()
-    packages_prefixes = get_packages_prefixes()
 
     return render_template('index.html', **{
-        "active_jobs_info": active_jobs_info,
+        "groups_info": groups_info,
+        "builders_info": builders_info,
         "pending_jobs": pending_jobs,
-	"packages_prefixes": packages_prefixes,
+        "prefixes": PREFIXES,
         "form": form
     })
 
+
+@frontend.route("/maintainer/<search>/", methods=['POST', 'GET'])
+@frontend.route("/maintainer/<search>/<page>")
+@frontend.route("/source/<search>/", methods=['POST', 'GET'])
+@frontend.route("/source/<search>/<page>")
 @frontend.route("/sources/")
-def source_list():
-    session = Session()
-    count = 100
-    sources = session.query(Source)\
-        .options(joinedload(Source.user))\
-        .options(joinedload(Source.group))\
-        .order_by(Source.created_at.desc())\
-        .limit(count)
-    sources_info = []
-    for s in sources:
-        info = {}
-        info['source'] = s
-        info['source_link'] = "/source/%s/%s/%s/%s" % (s.user.login, s.name, s.version, s.run)
-        info['group_link'] = "/group/%s" % s.group.name
-        info['user_link'] = "/worker/%s" % s.user.login
-        info['user_repository_link'] = "/repository/%s" % s.user.login
-        sources_info.append(info)
-
-    return render_template('source_list.html', **{
-        "sources_info": sources_info,
-        "count": count,
-    })
-
-
-
-@frontend.route("/maintainer/<nameItem>/", methods=['POST','GET'])
-@frontend.route("/prefix/<nameItem>/")
-def list_packages(nameItem=0):
-    if request.method == 'POST':
-        # Switch a better url
-        return redirect('/maintainer/' + re.search(r".*<(.*)>",request.form['maintainer']).group(1) + '/')
-
-    session = Session()
-    if request.path.startswith("/maintainer/"):
-        # Maintainer
-        sources = session.query(Source)\
-            .filter(Source.maintainer.contains(nameItem))\
-            .distinct(Source.name)\
-            .order_by(Source.name.desc(), Source.version.desc())
-    else:
-        sources = session.query(Source)\
-            .filter(Source.name.startswith(nameItem))\
-            .distinct(Source.name)\
-            .order_by(Source.name.desc(), Source.version.desc())
-
-    sources_info = []
-    for s in sources:
-        info = {}
-        info['source'] = s
-        info['source_link'] = "/source/%s/%s/%s/%s" % (s.user.login, s.name, "latest", s.run)
-        sources_info.append(info)
-
-    return render_template('prefix.html', **{
-        "sources": sources_info,
-        "prefix": nameItem,
-    })
-
-@frontend.route("/group/<group_id>/")
-@frontend.route("/group/<group_id>/<page>/")
-def group_list(group_id, page=0):
+@frontend.route("/sources/<prefix>/")
+@frontend.route("/sources/<prefix>/<page>/")
+def sources(search="", prefix="recent", page=0):
     page = int(page)
-    # FIXME : unsafe code, catch exceptions
-    session = Session()
-    g = session.query(Group).filter(Group.name == group_id).one()
-    sources = session.query(Source).filter(Source.group == g).order_by(Source.created_at.asc()).paginate(page, per_page=15)
+    session = make_session()
+
+    if request.path == "/maintainer/search/":
+        return redirect('/maintainer/' + request.form['maintainer'] + '/')
+    if request.path == "/source/search/":
+        return redirect('/source/' + request.form['source'] + '/')
+
+    if request.path.startswith("/maintainer/"):
+        source_count = session.query(Source)\
+            .count()
+        desc = "Search results for maintainer '%s'" % search
+        source_count = session.query(Source)\
+            .filter(Source.maintainers.any(Maintainer.name.contains(search) |
+                                           Maintainer.email.contains(search)))\
+            .count()
+        sources = session.query(Source)\
+            .filter(Source.maintainers.any(Maintainer.name.contains(search) |
+                                           Maintainer.email.contains(search)))\
+            .order_by(Source.name.asc(), Source.id.desc())\
+            .offset(page * ENTRIES_PER_LIST_PAGE)\
+            .limit(ENTRIES_PER_LIST_PAGE)\
+            .all()
+    elif request.path.startswith("/source/"):
+        desc = "Search results for source '%s'" % search
+        source_count = session.query(Source)\
+            .filter(Source.name.contains(search))\
+            .count()
+        sources = session.query(Source)\
+            .filter(Source.name.contains(search))\
+            .order_by(Source.name.asc(), Source.id.desc())\
+            .offset(page * ENTRIES_PER_LIST_PAGE)\
+            .limit(ENTRIES_PER_LIST_PAGE)\
+            .all()
+    elif prefix == "recent":
+        desc = "All recent sources."
+        source_count = session.query(Source).count()
+        sources = session.query(Source)\
+            .order_by(Source.id.desc())\
+            .offset(page * ENTRIES_PER_LIST_PAGE)\
+            .limit(ENTRIES_PER_LIST_PAGE)\
+            .all()
+    elif prefix == "incomplete":
+        desc = "All incomplete sources."
+        source_count = session.query(Source)\
+            .filter(Source.jobs.any(Job.finished_at == None))\
+            .count()
+        sources = session.query(Source)\
+            .filter(Source.jobs.any(Job.finished_at == None))\
+            .order_by(Source.name.asc(), Source.id.desc())\
+            .offset(page * ENTRIES_PER_LIST_PAGE)\
+            .limit(ENTRIES_PER_LIST_PAGE)\
+            .all()
+    elif prefix == "l":
+        desc = "All sources for packages beginning with 'l'"
+        source_count = session.query(Source)\
+            .filter(Source.name.startswith("l"))\
+            .filter(~Source.name.startswith("lib"))\
+            .count()
+        sources = session.query(Source)\
+            .filter(Source.name.startswith("l"))\
+            .filter(~Source.name.startswith("lib"))\
+            .order_by(Source.name.asc(), Source.id.desc())\
+            .offset(page * ENTRIES_PER_LIST_PAGE)\
+            .limit(ENTRIES_PER_LIST_PAGE)\
+            .all()
+    else:
+        desc = "All sources for packages beginning with '%s'" % prefix
+        source_count = session.query(Source)\
+            .filter(Source.name.startswith(prefix))\
+            .count()
+        sources = session.query(Source)\
+            .filter(Source.name.startswith(prefix))\
+            .order_by(Source.name.asc(), Source.id.desc())\
+            .offset(page * ENTRIES_PER_LIST_PAGE)\
+            .limit(ENTRIES_PER_LIST_PAGE)\
+            .all()
+
+    sources_info = []
+    for source in sources:
+        info = {}
+        info['source'] = source
+        info['source_link'] = "/source/%s/%s/%s" % \
+            (source.group.name, source.name, source.version)
+        info['group_link'] = "/group/%s" % source.group.name
+        info['uploader_link'] = "/user/%s" % source.uploader.email
+        sources_info.append(info)
+
+    info = {}
+    info['desc'] = desc
+    info['prev_link'] = "/sources/%s/%d" % (prefix, page-1) \
+        if page > 0 else None
+    info['next_link'] = "/sources/%s/%d" % (prefix, page+1) \
+        if source_count > (page+1) * ENTRIES_PER_LIST_PAGE else None
+
+    return render_template('sources.html', **{
+        "info": info,
+        "sources_info": sources_info,
+    })
+
+
+@frontend.route("/jobs/")
+@frontend.route("/jobs/<prefix>/")
+@frontend.route("/jobs/<prefix>/<page>/")
+def jobs(prefix="recent", page=0):
+    page = int(page)
+    session = make_session()
+
+    if prefix == "recent":
+        desc = "All recent jobs."
+        job_count = session.query(Job).count()
+        jobs = session.query(Job).join(Source).join(Check)\
+            .order_by(Source.id.desc())\
+            .offset(page * ENTRIES_PER_LIST_PAGE)\
+            .limit(ENTRIES_PER_LIST_PAGE)\
+            .all()
+    elif prefix == "incomplete":
+        desc = "All incomplete jobs."
+        job_count = session.query(Job)\
+            .filter(Job.finished_at == None)\
+            .count()
+        jobs = session.query(Job).join(Source).join(Check)\
+            .filter(Job.finished_at == None)\
+            .order_by(Source.name.asc(), Source.id.desc(),
+                      Check.build.desc(), Check.id.asc(),
+                      Job.id.asc())\
+            .offset(page * ENTRIES_PER_LIST_PAGE)\
+            .limit(ENTRIES_PER_LIST_PAGE)\
+            .all()
+    elif prefix == "l":
+        desc = "All jobs for packages beginning with 'l'"
+        job_count = session.query(Job).join(Source)\
+            .filter(Source.name.startswith("l"))\
+            .filter(~Source.name.startswith("lib"))\
+            .count()
+        jobs = session.query(Job).join(Source).join(Check)\
+            .filter(Source.name.startswith("l"))\
+            .filter(~Source.name.startswith("lib"))\
+            .order_by(Source.name.asc(), Source.id.desc(),
+                      Check.build.desc(), Check.id.asc(),
+                      Job.id.asc())\
+            .offset(page * ENTRIES_PER_LIST_PAGE)\
+            .limit(ENTRIES_PER_LIST_PAGE)\
+            .all()
+    else:
+        desc = "All jobs for packages beginning with '%s'" % prefix
+        job_count = session.query(Job).join(Source)\
+            .filter(Source.name.startswith(prefix))\
+            .count()
+        jobs = session.query(Job).join(Source).join(Check)\
+            .filter(Source.name.startswith(prefix))\
+            .order_by(Source.name.asc(), Source.id.desc(),
+                      Check.build.desc(), Check.id.asc(),
+                      Job.id.asc())\
+            .offset(page * ENTRIES_PER_LIST_PAGE)\
+            .limit(ENTRIES_PER_LIST_PAGE)\
+            .all()
+
+    jobs_info = []
+    for job in jobs:
+        info = {}
+        info['job'] = job
+        info['job_link'] = "/job/%s/%s/%s/%s" % \
+            (job.group.name, job.source.name, job.source.version, job.id)
+        info['source_link'] = "/source/%s/%s/%s" % \
+            (job.group.name, job.source.name, job.source.version)
+        info['group_link'] = "/group/%s" % job.group.name
+        info['builder_link'] = "/builder/%s" % job.builder.name \
+            if job.builder else None
+        jobs_info.append(info)
+
+    info = {}
+    info['desc'] = desc
+    info['prev_link'] = "/jobs/%s/%d" % (prefix, page-1) \
+        if page > 0 else None
+    info['next_link'] = "/jobs/%s/%d" % (prefix, page+1) \
+        if job_count > (page+1) * ENTRIES_PER_LIST_PAGE else None
+
+    return render_template('jobs.html', **{
+        "info": info,
+        "jobs_info": jobs_info,
+    })
+
+
+@frontend.route("/group/<name>/")
+@frontend.route("/group/<name>/<page>/")
+def group(name, page=0):
+    page = int(page)
+    session = make_session()
+
+    group = session.query(Group)\
+        .filter(Group.name == name)\
+        .one()
+
+    source_count = session.query(Source)\
+        .filter(Source.group == group)\
+        .count()
+    sources = session.query(Source)\
+        .filter(Source.group == group)\
+        .order_by(Source.id.desc())\
+        .offset(page * ENTRIES_PER_PAGE)\
+        .limit(ENTRIES_PER_PAGE)\
+        .all()
+
+    sources_info = []
+    for source in sources:
+        info = {}
+        info['source'] = source
+        info['source_link'] = "/source/%s/%s/%s" % \
+            (source.group.name, source.name, source.version)
+        info['uploader_link'] = "/user/%s" % source.uploader.email
+        sources_info.append(info)
+
+    info = {}
+    info['maintainer_link'] = "/user/%s" % group.maintainer.email
+    info['prev_link'] = "/group/%s/%d" % (group.name, page-1) \
+        if page > 0 else None
+    info['next_link'] = "/group/%s/%d" % (group.name, page+1) \
+        if source_count > (page+1) * ENTRIES_PER_PAGE else None
 
     return render_template('group.html', **{
-        "sources": sources,
-        "group_id": group_id,
-        "page": page,
+        "group": group,
+        "info": info,
+        "sources_info": sources_info,
     })
 
 
-@frontend.route("/source/search/", methods=['POST'])
-@frontend.route("/source/<owner_name>/<package_name>/<package_version>/<int:run_number>")
-def source(package_name="", owner_name="fred", package_version="latest", run_number=1):
-    if request.method == 'POST':
-        # Switch a better url
-        return redirect('/source/' + owner_name + '/' + request.form['package'] + '/' + package_version + '/' + str(run_number))
+@frontend.route("/builder/<name>")
+@frontend.route("/builder/<name>/<page>")
+def builder(name, page=0):
+    page = int(page)
+    session = make_session()
 
-    session = Session()
+    builder = session.query(Builder)\
+        .filter(Builder.name == name)\
+        .one()
 
-    # Let's compute all the versions that exists for this package
-    versions_query = session.query(Source.version)\
-        .join(Source.user)\
+    job_count = session.query(Job).filter(Job.builder == builder).count()
+    jobs = session.query(Job).join(Source)\
+        .filter(Job.builder == builder)\
+        .order_by(Job.id.desc())\
+        .offset(page * ENTRIES_PER_PAGE)\
+        .limit(ENTRIES_PER_PAGE)\
+        .all()
+
+    jobs_info = []
+    for job in jobs:
+        info = {}
+        info['job'] = job
+        info['job_link'] = "/job/%s/%s/%s/%s" % \
+            (job.group.name, job.source.name, job.source.version, job.id)
+        info['source_link'] = "/source/%s/%s/%s" % \
+            (job.group.name, job.source.name, job.source.version)
+        info['group_link'] = "/group/%s" % job.group.name
+        jobs_info.append(info)
+
+    info = {}
+    info['maintainer_link'] = "/user/%s" % builder.maintainer.email
+    info['prev_link'] = "/builder/%s/%d" % (builder.name, page-1) \
+        if page > 0 else None
+    info['next_link'] = "/builder/%s/%d" % (builder.name, page+1) \
+        if job_count > (page+1) * ENTRIES_PER_PAGE else None
+
+    return render_template('machine.html', **{
+        "builder": builder,
+        "jobs_info": jobs_info,
+        "info": info,
+    })
+
+
+@frontend.route("/user/<email>/")
+@frontend.route("/user/<email>/<page>/")
+def user(email, page=0):
+    page = int(page)
+    session = make_session()
+
+    user = session.query(Person)\
+        .filter(Person.email == email)\
+        .one()
+
+    groups = session.query(Group)\
+        .filter(Group.maintainer == user)\
+        .order_by(Group.name.asc())\
+        .all()
+
+    builders = session.query(Builder)\
+        .filter(Builder.maintainer == user)\
+        .order_by(Builder.name.asc())\
+        .all()
+
+    source_count = session.query(Source)\
+        .filter(Source.uploader == user)\
+        .count()
+    sources = session.query(Source)\
+        .filter(Source.uploader == user)\
+        .order_by(Source.id.desc())\
+        .offset(page * ENTRIES_PER_PAGE)\
+        .limit(ENTRIES_PER_PAGE)\
+        .all()
+
+    groups_info = []
+    for group in groups:
+        info = {}
+        info['group'] = group
+        info['group_link'] = "/group/%s" % group.name
+        groups_info.append(info)
+
+    builders_info = []
+    for builder in builders:
+        info = {}
+        info['builder'] = builders
+        info['builder_link'] = "/builder/%s" % builder.name
+        jobs = session.query(Job).join(Source)\
+            .filter(Job.assigned_at != None)\
+            .filter(Job.finished_at == None)\
+            .filter(Job.builder == builder)\
+            .order_by(Job.id.desc())\
+            .all()
+        jobs_info = []
+        for job in jobs:
+            jobinfo = {}
+            jobinfo['job'] = job
+            jobinfo['job_link'] = "/job/%s/%s/%s/%s" % \
+                (job.group.name, job.source.name, job.source.version, job.id)
+            jobinfo['source_link'] = "/source/%s/%s/%s" % \
+                (job.group.name, job.source.name, job.source.version)
+            jobs_info.append(jobinfo)
+        info['jobs_info'] = jobs_info
+        builders_info.append(info)
+
+    sources_info = []
+    for source in sources:
+        info = {}
+        info['source'] = source
+        info['source_link'] = "/source/%s/%s/%s" % \
+            (source.group.name, source.name, source.version)
+        info['group_link'] = "/group/%s" % source.group.name
+        sources_info.append(info)
+
+    info = {}
+    info['prev_link'] = "/user/%s/%d" % (user.email, page-1) \
+        if page > 0 else None
+    info['next_link'] = "/user/%s/%d" % (user.email, page+1) \
+        if source_count > (page+1) * ENTRIES_PER_PAGE else None
+
+    return render_template('user.html', **{
+        "user": user,
+        "info": info,
+        "groups_info": groups,
+        "builders_info": builders,
+        "sources_info": sources,
+    })
+
+
+@frontend.route("/source/<group_name>/<package_name>/<suite_or_version>/")
+def source(group_name, package_name, suite_or_version):
+    session = make_session()
+
+    source = session.query(Source.version)\
+        .filter(Group.name == group_name)\
         .filter(Source.name == package_name)\
-        .filter(User.login == owner_name)
-    versions = sorted(set([e[0] for e in versions_query.all()]))
+        .filter(Source.version == suite_or_version |
+                Suite.name == suite_or_version)\
+        .order_by(Source.id.desc()).first()
 
-    if len(versions) == 0:
+    if not source:
         return render_template('source-not-found.html', **{
-                "package_name": package_name
-                })
+            "group_name": group_name,
+            "package_name": package_name,
+            "suite_or_version": suite_or_version,
+        })
 
-    latest_version = versions[-1]
-    if package_version == 'latest':
-        this_version = latest_version
-    else:
-        this_version = package_version
-
-    # All runs that exist for this version
-    runs_query = session.query(Source.run)\
-        .join(Source.user)\
+    # Find all versions of this package
+    versions = session.query(Source.version)\
+        .filter(Group.name == group_name)\
         .filter(Source.name == package_name)\
-        .filter(User.login == owner_name)\
-        .filter(Source.version == this_version)\
-        .order_by(Source.run.asc())
-    runs = [e[0] for e in runs_query.all()]
+        .order_by(Source.id.desc()).all()
 
-    if len(runs) == 0:
-        return render_template('source-not-found.html', **{
-                "package_name": package_name,
-                "version": this_version
-                })
-
-    
-    latest_run = runs[-1]
-    if run_number == '0':
-        this_run = latest_run
-    else:
-        this_run = run_number
-
-    # Join load the user to show details about the source owner
-    package_query = session.query(Source)\
-        .options(joinedload('user'))\
-        .options(joinedload('jobs'))\
-        .options(joinedload('binaries'))\
-        .filter(Source.name == package_name)\
-        .filter(User.login == owner_name)\
-        .filter(Source.version == this_version)\
-        .filter(Source.run == this_run)
-
-    try:
-        package = package_query.one()
-    except:
-        raise Exception("This resource does not exist")
-
-    # Compute description section
-    desc = {}
-    desc['user_link'] = "/worker/%s" % package.user.login
-    desc['user_repository_link'] = "/repository/%s" % package.user.login
-
-    desc['run'] = run_number
-    # desc['pool_link'] =
-
-    # Fill in the run sections if need be
-    # Remember that multiple runs cannot exist with fred auto-build
-    if len(runs) > 1:
-        multiple_runs = True
-    else:
-        multiple_runs = False
-    runs_info = []
-    if multiple_runs:
-        for r in runs:
-            href = "/source/%s/%s/%s/%s" % (owner_name,
-                                            package_name,
-                                            package_version,
-                                            r
-                                            )
-            runs_info.append((r, href))
-
-    # Fill in the version sections
-    if len(versions) > 1:
-        multiple_versions = True
-    else:
-        multiple_versions = False
     versions_info = []
-    if multiple_versions:
-        for v in versions:
-            href = "/source/%s/%s/%s/%s" % (owner_name, package_name, v, 1)
-            versions_info.append((v, href))
+    if len(versions) > 1:
+        for version in versions:
+            href = "/source/%s/%s/%s" % \
+                (group_name, package_name, version)
+            versions_info.append((version, href))
 
-    # Compute infos to display the job parts
-    # Iterate through all jobs
-    # Job total counters + compute some links
-    source_jobs = session.query(Job)\
-        .options(joinedload('machine'))\
-        .filter(Job.package == package)\
-        .order_by(Job.type, Job.subtype)\
+    jobs = session.query(Job).join(Check)\
+        .filter(Job.source == source)\
+        .order_by(Check.build.desc(), Check.id.asc(), Job.id.asc())\
         .all()
 
-    total = len(source_jobs)
+    total = len(jobs)
     unfinished = 0
-    source_jobs_info = []
-    for j in source_jobs:
+    jobs_info = []
+    for job in jobs:
         info = {}
-        info['job'] = j
-        info['job_link'] = '/report/%s/%s/%s/%s#full_log' % (package_name, this_version, j.type, j.id)
-        if j.type == "clanganalyzer":
-            # Special case (I know) for clang to point directly to the HTML report
-            # TODO: update the path to a nicer one (like job_link)
-            info['job_report_link'] = '/static-job-reports/%s/scan-build/' % j.id
-        else:
-            info['job_report_link'] = info['job_link']
-        if j.machine:
-            info['job_machine_link'] = '/machine/%s' % j.machine.name
-        if not j.is_finished():
+        info['job'] = job
+        info['job_link'] = '/job/%s/%s/%s/%d' % \
+            (group_name, package_name, source.version, job.id)
+        info['builder_link'] = '/builder/%s' % job.builder.name \
+            if job.builder else None
+        if job.finished_at is None:
             unfinished += 1
-            if j.machine is None:
-                info['status'] = 'pending'
-            else:
-                info['status'] = 'running'
+            info['status'] = 'running' if job.assigned_at else 'pending'
         else:
             info['status'] = 'finished'
 
-        source_jobs_info.append(info)
+        jobs_info.append(info)
 
-    binaries_jobs = session.query(Job)\
-        .options(joinedload('machine'))\
-        .join(Binary, Job.package_id == Binary.package_id)\
-        .filter(Binary.source_id == package.source_id)\
-        .order_by(Job.type, Job.subtype, Binary.name)\
-        .all()
-
-    binaries_jobs_info = []
-    for j in binaries_jobs:
-        info = {}
-        info['job'] = j
-        info['job_link'] = '/report/%s/%s/%s/%s#full_log' % (package_name, this_version, j.type, j.id)
-        if j.machine:
-            info['job_machine_link'] = '/machine/%s' % j.machine.name
-        if not j.is_finished():
-            unfinished += 1
-            if j.machine:
-                info['status'] = 'running'
-            else:
-                info['status'] = 'pending'
-        else:
-            info['status'] = 'finished'
-        binaries_jobs_info.append(info)
+    info = {}
+    info["job_status"] = (total, unfinished),
+    info['group_link'] = "/group/%s" % source.group.name
+    info['uploader_link'] = "/user/%s" % source.uploader.name
 
     return render_template('source.html', **{
-        "desc": desc,
-        "multiple_runs": multiple_runs,
-        "runs_info": runs_info,
-        "latest_run": latest_run,
-        "multiple_versions": multiple_versions,
-        "latest_version": latest_version,
+        "job": job,
+        "info": info,
         "versions_info": versions_info,
-        "package": package,
-        "package_job_status": (total, unfinished),
-        "source_jobs_info": source_jobs_info,
-        "binaries_jobs_info": binaries_jobs_info
+        "jobs_info": jobs_info,
     })
 
 
-@frontend.route("/machine/<machine_name>")
-def machine(machine_name):
-    session = Session()
-    # FIXME : unsafe code, catch exceptions
-    machine = session.query(Machine).filter(Machine.name == machine_name).one()
-    return render_template('machine.html', **{
-        "machine": machine
-    })
+@frontend.route("/job/<job_id>/")
+@frontend.route("/job/<group_name>/<package_name>/<package_version>/<job_id>/")
+def job(job_id, group_name="", package_name="", version=""):
+    job_id = int(job_id)
+    session = make_session()
 
+    job = session.query(Job).get(job_id)
 
-@frontend.route("/worker/<worker_login>")
-def worker(worker_login):
-    session = Session()
-    # FIXME : unsafe code, catch exceptions                                                                            
-    user = session.query(User).filter(User.login == worker_login).one()
-
-    ur = UserRepository(user)
-    dput_upload_profile = ur.generate_dputprofile()
-
-    return render_template('worker.html', **{
-        "worker": user,
-        "dput_upload_profile": dput_upload_profile
-    })
-
-@frontend.route("/repository/<worker_login>")
-def repository(worker_login):
-    session = Session()
-    # FIXME : unsafe code, catch exceptions
-    user = session.query(User).filter(User.login == worker_login).one()
-
-    ur = UserRepository(user)
-    apt_binary_list = ur.generate_aptbinarylist()
-    apt_source_list = ur.generate_aptsourcelist()
-
-    return render_template('repository.html', **{
-        "worker": user,
-        "apt_binary_list": apt_binary_list,
-        "apt_source_list": apt_source_list
-    })
-
-
-@frontend.route("/report/<job_id>/")
-@frontend.route("/report/<package_name>/<version>/<job_type>/<job_id>/")
-def report(job_id, package_name="", version="", job_type=""):
-# TODO : design architecture Pending, firewose ?
-#    report = Report.load(report_id)
-    config = Config()
-    session = Session()
-    job_query = session.query(Job).filter(Job.id == job_id)
-    try:
-        job = job_query.one()
-    except:
-        raise Exception("This resource does not exist")
-
-    job_info = {}
-    job_info['job'] = job
     time_diff = job.finished_at - job.assigned_at
     hours, remainder = divmod(time_diff.total_seconds(), 3600)
     minutes, seconds = divmod(remainder, 60)
-    job_info['job_runtime'] = '%dh %02dm %02ds' % (hours, minutes, seconds)
-    job_info['job_runtime_type'] = type(job.finished_at - job.assigned_at)
-    job_info['machine_link'] = "/machine/%s" % job.machine.name
-    if job.package.type == "source":
-        job_info['package_link'] = '/source/%s/%s/%s/%s' % (job.package.user.login, job.package.name, job.package.version, job.package.run)
-    else:
-        pool = os.path.join(config.get('paths', 'pool_url'), str(job.package.source.package_id), job.package.arch, job.package.deb)
-        job_info['deb_link'] = pool
-        job_info['source_link'] = '/source/%s/%s/%s/%s' % (job.package.source.user.login, job.package.source.name, job.package.source.version, job.package.source.run)
 
-    log_path = os.path.join(config.get('paths', 'jobs_path'),
-                            job_id, 'log.txt')
+    info = {}
+    info['job_runtime'] = '%dh %02dm %02ds' % \
+        (hours, minutes, seconds)
+    info['source_link'] = '/source/%s/%s/%s' % \
+        (job.group.name, job.source.name, job.source.version)
+    info['binary_link'] = '/job/%s/%s/%s/%d' % \
+        (job.group.name, job.binary.name, job.binary.version, job.binary.build_job_id) if job.binary else None
+    info['builder_link'] = "/builder/%s" % job.builder.name
 
-    firehose_link = "/static-job-reports/%s/firehose.xml" % job_id
-    log_link = "/static-job-reports/%s/log.txt" % job_id
+    info['dud_name'] = "%d.dud" % job.id
+    info['log_name'] = "%d.log" % job.id
+    info['firehose_name'] = "%d.firehose.xml" % job.id
+    special_files = [info['dud_name'], info['log_name'], info['firehose_name']]
+    info['files'] = sorted([x for x in os.listdir(job.files_path) if x not in special_files])
 
-    ### SCANDALOUS HACK
-    if job.type == 'clanganalyzer':
-        scanbuild_link = "/static-job-reports/%s/scan-build/" % job_id
-    else:
-        scanbuild_link = ""
-
-    log = []
-    if os.path.exists(log_path):
-        log = (x.decode('utf-8') for x in open(log_path, 'r'))
-
-    return render_template('report.html', **{
-        "job_info": job_info,
-        "log_link": log_link,
-        "firehose_link": firehose_link,
-        "scanbuild_link": scanbuild_link,
-        "log": log,
+    return render_template('job.html', **{
+        "job": job,
+        "info": info,
     })
 
 
-@frontend.route("/report/firehose/<job_id>/")
-def report_firehose(job_id):
-    config = Config()
-    firehose_path = os.path.join(config.get('paths', 'jobs_path'),
-                                 job_id, 'firehose.xml')
-
-    if os.path.exists(firehose_path):
-        return send_file(firehose_path, mimetype='application/xml',
-                         as_attachment=True, attachment_filename='firehose.xml')
-
-
-@frontend.route("/report/log/<job_id>/")
-def report_log(job_id):
-    config = Config()
-    log_path = os.path.join(config.get('paths', 'jobs_path'),
-                            job_id, 'log')
-
-    if os.path.exists(log_path):
-        return send_file(log_path, mimetype='text/plain', as_attachment=True,
-                         attachment_filename='log.txt')
-
-
-@frontend.route('/_search_package')
-def search_package():
+@frontend.route('/_search_source')
+def search_source():
     search = request.args.get('search[term]')
-    session = Session()
-    packages_query = session.query(Source.name)\
-        .filter(Source.name.startswith(search)).group_by(Source.name).limit(10)
-    result = [r[0] for r in packages_query]
+    session = make_session()
+    query = session.query(Source.name)\
+        .filter(Source.name.startswith(search))\
+        .group_by(Source.name).limit(10)
+    result = [r[0] for r in query]
     return jsonify(result)
+
 
 @frontend.route('/_search_maintainer')
 def search_maintainer():
     search = request.args.get('search[term]')
-    session = Session()
-    print "foo" + search
-    maintainers_query = session.query(Source.maintainer)\
-        .filter(Source.maintainer.contains(search))\
-        .group_by(Source.maintainer).limit(10)
-    result = [r[0] for r in maintainers_query]
+    session = make_session()
+    query = session.query(Maintainer.name, Maintainer.email)\
+        .filter(Maintainer.name.startswith(search) |
+                Maintainer.email.startswith(search))\
+        .group_by(Maintainer.name, Maintainer.email).limit(10)
+    result = [r[0] if r[0].startswith(search) else r[1] for r in query]
     return jsonify(result)
 
 

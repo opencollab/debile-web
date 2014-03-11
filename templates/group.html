@@ -1,13 +1,58 @@
 {% extends "base.html" %}
 
-{% block title %}Package List{% endblock %}
+{% block title %}Package Group {{group.name}}{% endblock %}
 
 {% block content %}
-<h1>Package Group {{group_id}}</h1>
-{% if page > 0 %}
-    <a class = 'left' href = '/group/{{group_id}}/{{page - 1}}' >last page</a>
-{% endif %}
-    <a class = 'right' href = '/group/{{group_id}}/{{page + 1}}' >next page</a>
+    <h1>Package Group {{group.name}}</h1>
+    <div class='block'>
+        <div class='desc_line'>
+            <div class='desc_key'>Maintainer</div>
+            <div class='desc_value'><a href='{{info.maintainer_link}}'>{{group.maintainer.name}}</a></div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Repository</div>
+            <div class='desc_value'><a href='{{group.repo_url}}'>{{group.repo_url}}</a></div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Suites:</div>
+            <div class='desc_value'>
+            {% for gs in group.suites %}
+                {{gs.suite.name}}
+            {% endfor %}
+            </div>
+        </div>
+        {% for gs in group.suites %}
+            <div class='desc_line'>
+                <div class='desc_key'>{{gs.suite.name}} Components</div>
+                <div class='desc_value'>
+                    {% for component in gs.components %}
+                        {{component.name}}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class='desc_line'>
+                <div class='desc_key'>{{gs.suite.name}} Architectures</div>
+                <div class='desc_value'>
+                    {% for arch in gs.arches %}
+                        {{arch.name}}
+                    {% endfor %}
+                </div>
+            </div>
+            <div class='desc_line'>
+                <div class='desc_key'>{{gs.suite.name}} Checks</div>
+                <div class='desc_value'>
+                    {% for check in gs.checks %}
+                        {{check.name}}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <h3>Sources in Package Group {{grop.name}}</h3>
+    {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
+    {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
     <div class = 'clear' ></div>
     {% include "source_list_fragment.html" %}
+
 {% endblock %}

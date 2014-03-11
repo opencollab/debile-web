@@ -4,9 +4,7 @@
 
 {% block content %}
 
-Package <i>{{ package_name }}</i> {% if version %} {{ version }} {% endif %} not found
-{% if version %}<br />
-Try the <a href="/source/fred/{{ package_name }}/latest/1">latest release</a>
-{% endif %}
+Package <i>{{package_name}}/{{version_or_suite}}</i> not found in group <i>{{group_name}}</i><br />
+You can try to search for packages named <a href="/source/{{package_name}}">{{package_name}}</a> instead.<br />
 
 {% endblock %}

@@ -8,15 +8,15 @@
 
  <script type="text/javascript">
   $(function() {
-  $( "#package" ).autocomplete({
+  $( "#source" ).autocomplete({
     source: function( request, response ) {
-        $.getJSON($SCRIPT_ROOT + "/_search_package", {
+        $.getJSON($SCRIPT_ROOT + "/_search_source", {
           search: request
         }, response);
     },
     select: function(event, ui) { 
-      $("#package").val(ui.item.label);
-      $("#searchPackageForm").submit(); }
+      $("#source").val(ui.item.label);
+      $("#searchSourceForm").submit(); }
   })
   });
 
@@ -41,9 +41,9 @@
   }
   </style> 
 
-<table><tr><td>By package</td><td>
-<form id="searchPackageForm" action="/source/search/" method="POST">
-  <div class="ui-widget">{{form.package(size=20)}}
+<table><tr><td>By source</td><td>
+<form id="searchSourceForm" action="/source/search/" method="POST">
+  <div class="ui-widget">{{form.source(size=20)}}
   <input type="submit" value="Search" /></div>
 </form>
 </td></tr>

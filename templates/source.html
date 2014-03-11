@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Package {{package.name}}/{{package.version}}{% endblock %}
+{% block title %}{{source.name}}/{{source.version}}{% endblock %}
 
 {% block content %}
 
-{% with total, unfinished = package_job_status %}
+{% with total, unfinished = info.job_status %}
     <div class = 'box' >
         <div class = 'unfinished' >
             {{unfinished}}<span class = 'total' >/{{total}}</span>
@@ -13,61 +13,56 @@
     </div>
 {% endwith %}
 
-
     <div class='block'>
-		<h3>Package info</h3>
+        <h1>{{source.name}}/{{source.version}}</h1>
         <div class='desc_line'>
             <div class='desc_key'>Name</div>
-            <div class='desc_value'>{{package.name}}</div>
+            <div class='desc_value'>{{source.name}}</div>
         </div>
         <div class='desc_line'>
             <div class='desc_key'>Version</div>
-            <div class='desc_value'>{{package.version}}</div>
+            <div class='desc_value'>{{source.version}}</div>
         </div>
         <div class='desc_line'>
-            <div class='desc_key'>Maintainer</div>
-            <div class='desc_value'>{{package.maintainer}}</div>
+            <div class='desc_key'>Group</div>
+            <div class='desc_value'><a href='{{info.group_link}}'>{{source.group.name}}</a></div>
         </div>
         <div class='desc_line'>
-            <div class='desc_key'>Built by</div>
-            <div class='desc_value'><a href='{{desc.user_link}}'>{{package.user.name}}</a></div>
+            <div class='desc_key'>Suite</div>
+            <div class='desc_value'>{{source.suite.name}}</div>
         </div>
         <div class='desc_line'>
-            <div class='desc_key'>Available on</div>
-            <div class='desc_value'><a href='{{desc.user_repository_link}}'>Repository</a></div>
+            <div class='desc_key'>Component</div>
+            <div class='desc_value'>{{source.component.name}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Uploader</div>
+            <div class='desc_value'><a href='{{info.uploader_link}}'>{{source.uploader.name}}</a></div>
         </div>
     </div>
 
-    {% if multiple_runs %}
     <div class='block'>
-    <h3>debile runs</h3>
-        {% if latest_run == package.run %}
-        This is the latest run of debile available for this package, but you can access previous runs:
-        {% else %}
-        This package version has been processed multiple times, see other runs:
-        {% endif %}
-        <div class='package_runs_menu'>
-            {% for run, link in runs_info %}
-            <div class='package_runs_menu_element {% if desc.run == run %}current_run{% endif %}'>
-                <a href='{{link}}'>{{run}}{% if loop.last %} (latest){% endif %}</a>
+        <h3>(Co-)Maintainers</h3>
+        <div class='package_maintainers_menu'>
+            {% for maintainer in source.maintainers %}
+            <div class='package_maintainers_menu_element'>
+                {{maintainer.name}} &lt;{{maintainer.email}}&gt;
             </div>
-			{% if not loop.last %} | {% endif %}
             {% endfor %}
         </div>
     </div>
-    {% endif %}
 
-    {% if multiple_versions %}
+    {% if versions_info %}
     <div class='block'>
-    <h3>Versions</h3>
+        <h3>Other Versions</h3>
         <div class='package_versions_menu'>
             {% for version, link in versions_info %}
             <div class='package_versions_menu_element'>
-	      {% if version == package.version %}
-	      {{version}}{% if loop.last %} (latest){% endif %}
-	      {% else %}
-              <a href='{{link}}'>{{version}}{% if loop.last %} (latest){% endif %}</a>
-	      {% endif %}
+                {% if version == source.version %}
+                    {{version}}
+                {% else %}
+                    <a href='{{link}}'>{{version}}</a>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -75,23 +70,8 @@
     {% endif %}
 
     <div class='block'>
-    <h3>source jobs</h3>
-    launched on the source package provided
-{% with jobinfolist = source_jobs_info %}
-{% with emptymessage = 'Ahem, this is weird, there should be jobs here, call us...' %}
-    {% include "report_list_fragment.html" %}
-{% endwith %}
-{% endwith %}
-    </div>
-
-    <div class='block'>
-    <h3>binary jobs</h3>
-launched on the binaries uploaded after the build of the source package
-{% with jobinfolist = binaries_jobs_info %}
-{% with emptymessage = 'No binary jobs yet, check the build jobs above.' %}
-    {% include "report_list_binary_fragment.html" %}
-{% endwith %}
-{% endwith %}
+        <h3>Jobs</h3>
+        {% include "job_list_fragment.html" %}
     </div>
 
 {% endblock %}

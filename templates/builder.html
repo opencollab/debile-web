@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{{builder.name}}{% endblock %}
+
+{% block content %}
+    <h1>{{builder.name}}</h1>
+    <div class='block'>
+        <div class='desc_line'>
+            <div class='desc_key'>Name</div>
+            <div class='desc_value'>{{builder.name}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Maintainer</div>
+            <div class='desc_value'><a href='{{info.maintainer_link}}'>{{builder.maintainer.name}}</a></div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>PGP Fingerprint</div>
+            <div class='desc_value'>{{builder.pgp}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>SSL Fingerprint</div>
+            <div class='desc_value'>{{builder.ssl}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Last Ping</div>
+            <div class='desc_value'>{{machine.last_ping|ago}}</div>
+        </div>
+    </div>
+
+    <h3>Jobs Assigned to {{builder.name}}</h3>
+    {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
+    {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
+    <div class = 'clear' ></div>
+    {% include "job_list_fragment.html" %}
+
+{% endblock %}

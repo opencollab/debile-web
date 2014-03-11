@@ -1,31 +1,29 @@
 {% extends "base.html" %}
 
-{% import "macros.inc.html" as macros %}
-
-{% block title %}About{% endblock %}
+{% block title %}Debile Web{% endblock %}
 
 {% block content %}
+<h1>Groups</h1>
+{% include "group_list_fragment.html" %}
 
-This experimental infrastructure aims to provide a generic rebuild platform.<br />
-Normal build, custom builds (clang based) or static analyzers (coccinelle, scan-build, etc) are managed through this infrastructure.<br /><br />
+<h1>Builders</h1>
+{% include "builder_list_fragment.html" %}
 
-<b>Work in progress</b>
-{% include "search.html" %}
-<br />
-
-<h1>Active Jobs</h1>
-
-    {% include "job_list_fragment.html" %}
-
-<h1>Pending jobs</h1><br />
+<h1>Jobs</h1>
+List all <a href='/jobs/incomplete'>incomplete jobs</a><br />
+List all <a href='/jobs/recent'>recent jobs</a><br />
 There are currently {{pending_jobs}} jobs to assign.<br />
-<br />
-Browse by prefix:
-{{ macros.render_packages_prefixes(packages_prefixes) }}
-<br />
-<br />Last 
-<a href = '/sources' >uploads</a>
 
+<h1>Sources</h1>
+List all <a href='/sources/incomplete'>incomplete uploads</a><br />
+List all <a href='/sources/recent'>recent uploads</a><br />
 
+<h3>Browse Sources by Prefix:</h3>
+{% for prefix in prefixes %}
+    <a href="/sources/{{prefix}}">{{prefix}}</a>
+{% endfor %}
+
+<h3>Search Sources</h3>
+{% include "search.html" %}
 
 {% endblock %}

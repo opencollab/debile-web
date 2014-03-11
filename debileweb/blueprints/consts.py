@@ -28,3 +28,5 @@ PREFIXES = [
     'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
 ]
 
+ENTRIES_PER_PAGE = 20
+ENTRIES_PER_LIST_PAGE = 100

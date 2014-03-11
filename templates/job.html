@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}{{job.source.name}}/{{job.source.version}} {{job.name}}{% endblock %}
+
+{% block content %}
+
+    <div class='block'>
+        <h1>{{job.source.name}}/{{job.source.version}} {{job.name}}</h1>
+        <div class='desc_line'>
+            <div class='desc_key'>Source</div>
+            <div class='desc_value'><a href='{{info.source_link}}'>{{job.source.name}}/{{job.source.version}}</a></div>
+        </div>
+        {% if job.binary %}
+            <div class='desc_line'>
+                <div class='desc_key'>Binary</div>
+                <div class='desc_value'><a href='{{info.binary_link}}'>{{job.binary.name}}/{{job.binary.version}}</a></div>
+            </div>
+        {% endif %}
+        <div class='desc_line'>
+            <div class='desc_key'>Job</div>
+            <div class='desc_value'>{{job.name}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Group</div>
+            <div class='desc_value'><a href='{{info.group_link}}'>{{job.group.name}}</a></div>
+        <div>
+        <div class='desc_line'>
+            <div class='desc_key'>Suite</div>
+            <div class='desc_value'>{{job.suite.name}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Component</div>
+            <div class='desc_value'>{{job.component.name}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Check</div>
+            <div class='desc_value'>{{job.check.name}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Architecture</div>
+            <div class='desc_value'>{{job.arch.name}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Arch affinity</div>
+            <div class='desc_value'>{{job.affinity.name}}</div>
+        </div>
+        {% if job.builder %}
+            <div class='desc_line'>
+                <div class='desc_key'>Builder</div>
+                <div class='desc_value'><a href='{{info.builder_link}}'>{{job.builder.name}}</a></div>
+            </div>
+            <div class='desc_line'>
+                <div class='desc_key'>Build time</div>
+                <div class='desc_value'>{{info.job_runtime}}</div>
+            </div>
+        {% endif %}
+        <div class='desc_line'>
+            <div class='desc_key'>Status</div>
+            <div class='desc_value'>
+                {% if job.finished_at %}
+                    {% if job.check.build %}
+                        {# Builds #}
+                        {% if job.failed %}Failed{% else %}Uploaded{% endif %}
+                    {% else %}
+                        {# Analyzers #}
+                        {% if job.failed %}✗ Errors found{% else %}✓ No errors found{% endif %}
+                    {% endif %}
+                {% else %}
+                    Needs-Build
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if job.finished_at %}
+        <div class='block'>
+            <h3>Downloads</h3>
+            <div class='desc_line'>
+                <div class='desc_key'>Uploaded dud</div>
+                <div class='desc_value'><a href='{{info.dud_link}}'>{{info.dud_name}}</a></div>
+            </div>
+            <div class='desc_line'>
+                <div class='desc_key'>Job Log</div>
+                <div class='desc_value'><a href='{{info.log_link}}'>{{info.log_name}}</a></div>
+            </div>
+            <div class='desc_line'>
+                <div class='desc_key'>Firehose Report</div>
+                <div class='desc_value'><a href='{{info.firehose_link}}'>{{info.firehose_name}}</a></div>
+            </div>
+            {% if info.files %}
+                <div class='desc_line'>
+                    <div class='desc_key'>Additional Files</div>
+                    <div class='desc_value'>
+                        {% for file in info.files %}
+                            <a href='{{job.files_url}}/{{file}}'>{{file}}</a><br />
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+{% endblock %}

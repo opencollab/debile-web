@@ -23,5 +23,5 @@ from wtforms.validators import Required
 
 
 class SearchPackageForm(Form):
-    package = TextField('package', validators=[Required()])
+    source = TextField('source', validators=[Required()])
     maintainer = TextField('maintainer', validators=[Required()])

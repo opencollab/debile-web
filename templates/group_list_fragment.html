@@ -1,0 +1,28 @@
+    <table class = 'zebra'>
+        <tr>
+            <th>Group Name</th>
+            <th>Suites</th>
+            <th>Maintainer</th>
+        </tr>
+
+{% for info in groups_info %}
+        <tr>
+            <td>
+                <a href='{{info.group_link}}'>{{info.group.name}}</a>
+            </td>
+            <td>
+                {% for gs in info.group.suites %}
+                    {{gs.suite.name}}
+                {% endfor %}
+            </td>
+            <td>
+                {% if info.maintainer_link %}
+                    <a href='{{info.maintainer_link}}'>{{info.group.maintainer.name}}</a>
+                {% else %}
+                    {{info.group.maintainer.name}}
+                {% endif %}
+            </td>
+        </tr>
+{% endfor %}
+
+    </table>

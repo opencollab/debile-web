@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}{{user.name}}{% endblock %}
+
+{% block content %}
+    <h1>{{user.name}}</h1>
+    <div class='block'>
+        <div class='desc_line'>
+            <div class='desc_key'>Name</div>
+            <div class='desc_value'>{{user.name}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Email</div>
+            <div class='desc_value'><a href='mailto:{{user.email}}'>{{user.email}}</a></div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>PGP Fingerprint:</div>
+            <div class='desc_value'>{{user.pgp}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>SSL Fingerprint:</div>
+            <div class='desc_value'>{{user.ssl}}</div>
+        </div>
+    </div>
+
+    {% if groups_info %}
+        <h3>Groups Maintained by {{user.name}}</h3>
+        {% include "groups_list_fragment.html" %}
+    {%endif}
+
+    {% if builders_info %}
+        <h3>Builders Maintained by {{user.name}}</h3>
+        {% include "builder_list_fragment.html" %}
+    {%endif}
+
+    <h3>Sources Uploaded by {{user.name}}</h3>
+    {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
+    {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
+    <div class = 'clear' ></div>
+    {% include "source_list_fragment.html" %}
+    
+{% endblock %}

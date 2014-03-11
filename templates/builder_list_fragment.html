@@ -1,0 +1,37 @@
+    <table class = 'zebra'>
+        <tr>
+            <th>Name</th>
+            <th>Maintainer</th>
+            <th>Last Ping</th>
+            <th>Current Jobs</th>
+        </tr>
+
+{% for info in builders_info %}
+        <tr>
+            <td>
+                <a href='{{info.builder_link}}'>{{info.builder.name}}</a>
+            </td>
+            <td>
+                {% if info.maintainer_link %}
+                    <a href='{{info.maintainer_link}}'>{{info.builder.maintainer.name}}</a>
+                {% else %}
+                    {{info.builder.maintainer.name}}
+                {% endif %}
+            </td>
+            <td>
+                {{info.builder.last_ping|ago}}
+            </td>
+            <td>
+                {% if info.jobs_info %}
+                    {% for jobinfo in info.jobs_info %}
+                        <a href='{{jobinfo.source_link}}'>{{jobinfo.job.source.name}}/{{jobinfo.job.source.version}}</a>
+                        <a href='{{jobinfo.job_link}}'>{{jobinfo.job.name}}</a><br />
+                    {% endfor %}
+                {% else %}
+                    None-Assigned
+                {% endif %}
+            </td>
+        </tr>
+{% endfor %}
+
+    </table>
