@@ -18,11 +18,13 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-PREFIXES_DEFAULT = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
-                    'f', 'g', 'h', 'i', 'j', 'k', 'l', 'lib3', 'liba', 'libb',
-                    'libc', 'libd', 'libe', 'libf', 'libg', 'libh', 'libi',
-                    'libj', 'libk', 'libl', 'libm', 'libn', 'libo', 'libp',
-                    'libq', 'libr', 'libs', 'libt', 'libu', 'libv', 'libw',
-                    'libx', 'liby', 'libz', 'm', 'n', 'o', 'p', 'q', 'r', 's',
-                    't', 'u', 'v', 'w', 'x', 'y', 'z']
+PREFIXES = [
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+    'lib0', 'lib1', 'lib2', 'lib3', 'lib4', 'lib5', 'lib6', 'lib7', 'lib8',
+    'lib9', 'liba', 'libb', 'libc', 'libd', 'libe', 'libf', 'libg', 'libh',
+    'libi', 'libj', 'libk', 'libl', 'libm', 'libn', 'libo', 'libp', 'libq',
+    'libr', 'libs', 'libt', 'libu', 'libv', 'libw', 'libx', 'liby', 'libz',
+    'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+]
 
