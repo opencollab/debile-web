@@ -46,34 +46,12 @@ from consts import PREFIXES_DEFAULT
 frontend = Blueprint('frontend', __name__, template_folder='templates')
 
 
-@frontend.app_template_filter('seconds_display')
-def seconds_display(time):
-    td = timedelta(seconds=time)
-    return naturaldelta(td)
-
-
 @frontend.app_template_filter('ago')
 def ago_display(when):
     if when is None:
         return "never"
     td = dt.datetime.utcnow() - when
     return naturaltime(td)
-
-
-@frontend.app_template_filter('location')
-def location_display(obj):
-    if obj is None:
-        return ""
-
-    fo = obj['file']
-    po = obj['point']
-
-    if po is None:
-        return fo['givenpath']
-
-    return "%s:%s" % (obj['file']['givenpath'],
-                      obj['point']['line'])
-
 
 
 def get_packages_prefixes():
