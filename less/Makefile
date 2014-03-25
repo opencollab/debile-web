@@ -1,27 +1,31 @@
+#!/usr/bin/make -f
+
 LESS_SCRIPTS = debile.css
 
 LESSC = lessc
 LESSCFLAGS = -x
 
-STATIC = ../static
-STATIC_CSS = $(STATIC)/css
-
-.SUFFIXES:
-.SUFFIXES: .less .css
-
+STATIC_CSS = ../static/css
 
 all: build install
 
-
 build: $(LESS_SCRIPTS)
 
+install: $(LESS_SCRIPTS)
+	cp $(LESS_SCRIPTS) $(STATIC_CSS)/
 
-install:
-	mv debile.css $(STATIC_CSS)/debile.css
+clean:
+	rm -f $(LESS_SCRIPTS)
+	rm -f $(patsubst %.css,%.d,$(LESS_SCRIPTS))
 
+distclean: clean
+	rm -f $(patsubst %,$(STATIC_CSS)/%,$(LESS_SCRIPTS))
 
-.less.css:
-	$(LESSC) $(LESSCFLAGS) $< > $@
+%.css: %.less
+	$(LESSC) $(LESSCFLAGS) $< $@
+	$(LESSC) --depends $< $@ > $*.d
 
+-include $(patsubst %.css,%.d,$(LESS_SCRIPTS))
 
-.PHONY: build
+.PHONY: all build install clean distclean
+

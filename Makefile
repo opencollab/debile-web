@@ -1,32 +1,16 @@
-#
-
-LESSCFLAGS = -x
-STATIC = static
-STATIC_CSS = $(STATIC)/css
-
+#!/usr/bin/make -f
 
 all: build install
-	@echo "Nice."
 
-
-dev: lint all
+dev: all lint
 
 devel:
 	./devel.sh
 
 lint:
-	flake8 debile
+	flake8 debileweb
 
+build install clean distclean:
+	$(MAKE) -C less $@
 
-build: clean
-	make -C less build
-
-install:
-	make -C less install
-
-clean:
-	rm -rf $(STATIC_CSS)
-	mkdir -p $(STATIC_CSS)
-
-
-.PHONY: lint build clean
+.PHONY: all dev devel lint build install clean distclean

@@ -1,4 +1,4 @@
-*pyc
-*swp
-*debuild*egg*
-static/css
+*.pyc
+less/*.d
+less/*.css
+static/css/*.css
