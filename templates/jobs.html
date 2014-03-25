@@ -3,12 +3,14 @@
 {% block title %}Job List{% endblock %}
 
 {% block content %}
-    <h1>Job list</h1>
-    {% if info.desc %}{{info.desc}}{% endif %}
+    <div class='block'>
+        <h1>Job list</h1>
+        {% if info.desc %}{{info.desc}}{% endif %}
 
-    {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
-    {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
-    <div class = 'clear' ></div>
-    {% include "job_list_fragment.html" %}
+        {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
+        {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
+        <div class = 'clear' ></div>
+        {% include "job_list_fragment.html" %}
+    </div>
 
 {% endblock %}

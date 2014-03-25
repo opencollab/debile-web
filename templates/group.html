@@ -3,8 +3,9 @@
 {% block title %}Package Group {{group.name}}{% endblock %}
 
 {% block content %}
-    <h1>Package Group {{group.name}}</h1>
+
     <div class='block'>
+        <h1>Package Group {{group.name}}</h1>
         <div class='desc_line'>
             <div class='desc_key'>Maintainer</div>
             <div class='desc_value'><a href='{{info.maintainer_link}}'>{{group.maintainer.name}}</a></div>
@@ -49,10 +50,12 @@
         {% endfor %}
     </div>
 
-    <h3>Sources in Package Group {{grop.name}}</h3>
-    {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
-    {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
-    <div class = 'clear' ></div>
-    {% include "source_list_fragment.html" %}
+    <div class='block'>
+        <h3>Sources in Package Group {{grop.name}}</h3>
+        {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
+        {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
+        <div class = 'clear' ></div>
+        {% include "source_list_fragment.html" %}
+    </div>
 
 {% endblock %}

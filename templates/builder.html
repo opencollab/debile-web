@@ -3,8 +3,9 @@
 {% block title %}{{builder.name}}{% endblock %}
 
 {% block content %}
-    <h1>{{builder.name}}</h1>
+
     <div class='block'>
+        <h1>{{builder.name}}</h1>
         <div class='desc_line'>
             <div class='desc_key'>Name</div>
             <div class='desc_value'>{{builder.name}}</div>
@@ -27,10 +28,12 @@
         </div>
     </div>
 
-    <h3>Jobs Assigned to {{builder.name}}</h3>
-    {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
-    {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
-    <div class = 'clear' ></div>
-    {% include "job_list_fragment.html" %}
+    <div class='block'>
+        <h3>Jobs Assigned to {{builder.name}}</h3>
+        {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
+        {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
+        <div class = 'clear' ></div>
+        {% include "job_list_fragment.html" %}
+    </div>
 
 {% endblock %}

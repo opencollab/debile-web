@@ -3,12 +3,15 @@
 {% block title %}Package List{% endblock %}
 
 {% block content %}
-    <h1>Package list</h1>
-    {% if info.desc %}{{info.desc}}{% endif %}
 
-    {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
-    {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
-    <div class = 'clear' ></div>
-    {% include "source_list_fragment.html" %}
+    <div class='block'>
+        <h1>Package list</h1>
+        {% if info.desc %}{{info.desc}}{% endif %}
+
+        {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
+        {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
+        <div class = 'clear' ></div>
+        {% include "source_list_fragment.html" %}
+    </div>
 
 {% endblock %}

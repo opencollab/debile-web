@@ -4,7 +4,9 @@
 
 {% block content %}
 
-Package <i>{{package_name}}/{{version_or_suite}}</i> not found in group <i>{{group_name}}</i><br />
-You can try to search for packages named <a href="/source/{{package_name}}">{{package_name}}</a> instead.<br />
+    <div class='block'>
+        Package <i>{{package_name}}/{{version_or_suite}}</i> not found in group <i>{{group_name}}</i><br />
+        You can try to search for packages named <a href="/source/{{package_name}}">{{package_name}}</a> instead.<br />
+    </div>
 
 {% endblock %}
