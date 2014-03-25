@@ -2,8 +2,7 @@
         <tr>
             <th>Source</th>
             <th>Job</th>
-            <th>Group</th>
-            <th>Suite</th>
+            <th>Group<br />Suite</th>
             <th>Builder</th>
             <th>Status</th>
         </tr>
@@ -12,9 +11,9 @@
         <tr class='job {{info.status}}'>
             <td>
                 {% if info.source_link %}
-                    <a href='{{info.source_link}}'>{{info.job.source.name}}/{{info.job.source.version}}</a>
+                    <a href='{{info.source_link}}'>{{info.job.source.name}}/&#x200B;{{info.job.source.version}}</a>
                 {% else %}
-                    {{info.job.source.name}}/{{info.job.source.version}}
+                    {{info.job.source.name}}/&#x200B;{{info.job.source.version}}
                 {% endif %}
             </td>
             <td>
@@ -26,8 +25,7 @@
                 {% else %}
                     {{info.job.group.name}}
                 {% endif %}
-            </td>
-            <td>
+                <br />
                 {{info.job.suite.name}}
             </td>
             <td>

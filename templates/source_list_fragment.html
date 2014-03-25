@@ -1,8 +1,7 @@
     <table class = 'zebra'>
         <tr>
             <th>Source</th>
-            <th>Group</th>
-            <th>Suite</th>
+            <th>Group<br />Suite</th>
             <th>Uploader</th>
             <th>Status</th>
         </tr>
@@ -10,7 +9,7 @@
 {% for info in sources_info %}
         <tr>
             <td>
-                <a href='{{info.source_link}}'>{{info.source.name}}/{{info.source.version}}</a>
+                <a href='{{info.source_link}}'>{{info.source.name}}/&#8203;{{info.source.version}}</a>
             </td>
             <td>
                 {% if info.group_link %}
@@ -18,8 +17,7 @@
                 {% else %}
                     {{info.source.group.name}}
                 {% endif %}
-            </td>
-            <td>
+                <br />
                 {{info.source.suite.name}}
             </td>
             <td>
