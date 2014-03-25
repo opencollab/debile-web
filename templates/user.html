@@ -25,13 +25,13 @@
 
     {% if groups_info %}
         <h3>Groups Maintained by {{user.name}}</h3>
-        {% include "groups_list_fragment.html" %}
-    {%endif}
+        {% include "group_list_fragment.html" %}
+    {% endif %}
 
     {% if builders_info %}
         <h3>Builders Maintained by {{user.name}}</h3>
         {% include "builder_list_fragment.html" %}
-    {%endif}
+    {% endif %}
 
     <h3>Sources Uploaded by {{user.name}}</h3>
     {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}

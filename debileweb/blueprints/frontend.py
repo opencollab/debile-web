@@ -376,7 +376,7 @@ def builder(name, page=0):
     info['next_link'] = "/builder/%s/%d" % (builder.name, page+1) \
         if job_count > (page+1) * ENTRIES_PER_PAGE else None
 
-    return render_template('machine.html', **{
+    return render_template('builder.html', **{
         "builder": builder,
         "jobs_info": jobs_info,
         "info": info,
@@ -423,7 +423,7 @@ def user(email, page=0):
     builders_info = []
     for builder in builders:
         info = {}
-        info['builder'] = builders
+        info['builder'] = builder
         info['builder_link'] = "/builder/%s" % builder.name
         jobs = session.query(Job).join(Source)\
             .filter(Job.assigned_at != None)\
@@ -461,9 +461,9 @@ def user(email, page=0):
     return render_template('user.html', **{
         "user": user,
         "info": info,
-        "groups_info": groups,
-        "builders_info": builders,
-        "sources_info": sources,
+        "groups_info": groups_info,
+        "builders_info": builders_info,
+        "sources_info": sources_info,
     })
 
 
@@ -471,11 +471,11 @@ def user(email, page=0):
 def source(group_name, package_name, suite_or_version):
     session = make_session()
 
-    source = session.query(Source.version)\
+    source = session.query(Source)\
         .filter(Group.name == group_name)\
         .filter(Source.name == package_name)\
-        .filter(Source.version == suite_or_version |
-                Suite.name == suite_or_version)\
+        .filter((Source.version == suite_or_version) |
+                (Suite.name == suite_or_version))\
         .order_by(Source.id.desc()).first()
 
     if not source:
@@ -522,12 +522,12 @@ def source(group_name, package_name, suite_or_version):
         jobs_info.append(info)
 
     info = {}
-    info["job_status"] = (total, unfinished),
+    info["job_status"] = (total, unfinished)
     info['group_link'] = "/group/%s" % source.group.name
     info['uploader_link'] = "/user/%s" % source.uploader.name
 
     return render_template('source.html', **{
-        "job": job,
+        "source": source,
         "info": info,
         "versions_info": versions_info,
         "jobs_info": jobs_info,
@@ -536,7 +536,7 @@ def source(group_name, package_name, suite_or_version):
 
 @frontend.route("/job/<job_id>/")
 @frontend.route("/job/<group_name>/<package_name>/<package_version>/<job_id>/")
-def job(job_id, group_name="", package_name="", version=""):
+def job(job_id, group_name="", package_name="", package_version="", version=""):
     job_id = int(job_id)
     session = make_session()
 
@@ -559,7 +559,10 @@ def job(job_id, group_name="", package_name="", version=""):
     info['log_name'] = "%d.log" % job.id
     info['firehose_name'] = "%d.firehose.xml" % job.id
     special_files = [info['dud_name'], info['log_name'], info['firehose_name']]
-    info['files'] = sorted([x for x in os.listdir(job.files_path) if x not in special_files])
+    try:
+        info['files'] = sorted([x for x in os.listdir(job.files_path) if x not in special_files])
+    except OSError:
+        info['files'] = []
 
     return render_template('job.html', **{
         "job": job,
