@@ -308,10 +308,10 @@ def group(name, page=0):
         .one()
 
     source_count = session.query(Source)\
-        .filter(Source.group == group)\
+        .filter(GroupSuite.group == group)\
         .count()
     sources = session.query(Source)\
-        .filter(Source.group == group)\
+        .filter(GroupSuite.group == group)\
         .order_by(Source.id.desc())\
         .offset(page * ENTRIES_PER_PAGE)\
         .limit(ENTRIES_PER_PAGE)\
@@ -524,7 +524,7 @@ def source(group_name, package_name, suite_or_version):
     info = {}
     info["job_status"] = (total, unfinished)
     info['group_link'] = "/group/%s" % source.group.name
-    info['uploader_link'] = "/user/%s" % source.uploader.name
+    info['uploader_link'] = "/user/%s" % source.uploader.email
 
     return render_template('source.html', **{
         "source": source,
