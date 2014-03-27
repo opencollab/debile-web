@@ -79,15 +79,15 @@
         <h3>Downloads</h3>
         <div class='desc_line'>
             <div class='desc_key'>Uploaded dud</div>
-            <div class='desc_value'><a href='{{info.dud_link}}'>{{info.dud_name}}</a></div>
+            <div class='desc_value'><a href='{{job.files_url}}/{{info.dud_name}}'>{{info.dud_name}}</a></div>
         </div>
         <div class='desc_line'>
             <div class='desc_key'>Job Log</div>
-            <div class='desc_value'><a href='{{info.log_link}}'>{{info.log_name}}</a></div>
+            <div class='desc_value'><a href='{{job.files_url}}/{{info.log_name}}'>{{info.log_name}}</a></div>
         </div>
         <div class='desc_line'>
             <div class='desc_key'>Firehose Report</div>
-            <div class='desc_value'><a href='{{info.firehose_link}}'>{{info.firehose_name}}</a></div>
+            <div class='desc_value'><a href='{{job.files_url}}/{{info.firehose_name}}'>{{info.firehose_name}}</a></div>
         </div>
         {% if info.files %}
             <div class='desc_line'>
