@@ -65,6 +65,8 @@
                         {# Analyzers #}
                         {% if job.failed %}✗ Errors found{% else %}✓ No errors found{% endif %}
                     {% endif %}
+                {% elif job.externally_blocked or job.depedencies %}
+                    Dep-Wait
                 {% else %}
                     Needs-Build
                 {% endif %}
