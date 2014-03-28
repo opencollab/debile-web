@@ -13,7 +13,13 @@
         {% if job.binary %}
             <div class='desc_line'>
                 <div class='desc_key'>Binary</div>
-                <div class='desc_value'><a href='{{info.binary_link}}'>{{job.binary.name}}/{{job.binary.version}}</a></div>
+                <div class='desc_value'>
+                    {% if info.binary_link %}
+                        <a href='{{info.binary_link}}'>{{job.binary.name}}/{{job.binary.version}}</a>
+                    {% else %}
+                        {{job.binary.name}}/{{job.binary.version}}
+                    {% endif %}
+                </div>
             </div>
         {% endif %}
         <div class='desc_line'>

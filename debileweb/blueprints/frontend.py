@@ -552,7 +552,7 @@ def job(job_id, group_name="", package_name="", package_version="", version=""):
     info['source_link'] = '/source/%s/%s/%s' % \
         (job.group.name, job.source.name, job.source.version)
     info['binary_link'] = '/job/%s/%s/%s/%d' % \
-        (job.group.name, job.binary.name, job.binary.version, job.binary.build_job_id) if job.binary else None
+        (job.group.name, job.binary.name, job.binary.version, job.binary.build_job_id) if (job.binary and job.binary.build_job_id) else None
     info['builder_link'] = "/builder/%s" % job.builder.name
 
     info['dud_name'] = "%d.dud" % job.id
