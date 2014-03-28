@@ -36,6 +36,14 @@
             <div class='desc_value'>{{source.component.name}}</div>
         </div>
         <div class='desc_line'>
+            <div class='desc_key'>Architectures</div>
+            <div class='desc_value'>
+                {% for arch in source.arches %}
+                    {{arch.name}}
+                {% endfor %}
+            </div>
+        </div>
+        <div class='desc_line'>
             <div class='desc_key'>Uploader</div>
             <div class='desc_value'><a href='{{info.uploader_link}}'>{{source.uploader.name}}</a></div>
         </div>
