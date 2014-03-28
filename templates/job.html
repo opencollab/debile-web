@@ -55,6 +55,8 @@
                 <div class='desc_key'>Builder</div>
                 <div class='desc_value'><a href='{{info.builder_link}}'>{{job.builder.name}}</a></div>
             </div>
+        {% endif %}
+        {% if info.job_runtime %}
             <div class='desc_line'>
                 <div class='desc_key'>Build time</div>
                 <div class='desc_value'>{{info.job_runtime}}</div>

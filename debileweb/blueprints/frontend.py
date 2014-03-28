@@ -542,18 +542,20 @@ def job(job_id, group_name="", package_name="", package_version="", version=""):
 
     job = session.query(Job).get(job_id)
 
-    time_diff = job.finished_at - job.assigned_at
-    hours, remainder = divmod(time_diff.total_seconds(), 3600)
-    minutes, seconds = divmod(remainder, 60)
-
     info = {}
-    info['job_runtime'] = '%dh %02dm %02ds' % \
-        (hours, minutes, seconds)
     info['source_link'] = '/source/%s/%s/%s' % \
         (job.group.name, job.source.name, job.source.version)
     info['binary_link'] = '/job/%s/%s/%s/%d' % \
         (job.group.name, job.binary.name, job.binary.version, job.binary.build_job_id) if (job.binary and job.binary.build_job_id) else None
-    info['builder_link'] = "/builder/%s" % job.builder.name
+    info['builder_link'] = "/builder/%s" % job.builder.name if job.builder else None
+
+    info['job_runtime'] = None
+    if job.finished_at and job.assigned_at:
+        time_diff = job.finished_at - job.assigned_at
+        hours, remainder = divmod(time_diff.total_seconds(), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        info['job_runtime'] = '%dh %02dm %02ds' % \
+            (hours, minutes, seconds)
 
     info['dud_name'] = "%d.dud" % job.id
     info['log_name'] = "%d.log" % job.id
