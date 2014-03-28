@@ -77,7 +77,7 @@ def index():
             .filter(Job.assigned_at != None)\
             .filter(Job.finished_at == None)\
             .filter(Job.builder == builder)\
-            .order_by(Job.id.desc())\
+            .order_by(Job.assigned_at.desc())\
             .all()
         jobs_info = []
         for job in jobs:
@@ -132,7 +132,7 @@ def sources(search="", prefix="recent", page=0):
         sources = session.query(Source)\
             .filter(Source.maintainers.any(Maintainer.name.contains(search) |
                                            Maintainer.email.contains(search)))\
-            .order_by(Source.name.asc(), Source.id.desc())\
+            .order_by(Source.name.asc(), Source.uploaded_at.desc())\
             .offset(page * ENTRIES_PER_LIST_PAGE)\
             .limit(ENTRIES_PER_LIST_PAGE)\
             .all()
@@ -143,7 +143,7 @@ def sources(search="", prefix="recent", page=0):
             .count()
         sources = session.query(Source)\
             .filter(Source.name.contains(search))\
-            .order_by(Source.name.asc(), Source.id.desc())\
+            .order_by(Source.name.asc(), Source.uploaded_at.desc())\
             .offset(page * ENTRIES_PER_LIST_PAGE)\
             .limit(ENTRIES_PER_LIST_PAGE)\
             .all()
@@ -151,7 +151,7 @@ def sources(search="", prefix="recent", page=0):
         desc = "All recent sources."
         source_count = session.query(Source).count()
         sources = session.query(Source)\
-            .order_by(Source.id.desc())\
+            .order_by(Source.uploaded_at.desc())\
             .offset(page * ENTRIES_PER_LIST_PAGE)\
             .limit(ENTRIES_PER_LIST_PAGE)\
             .all()
@@ -162,7 +162,7 @@ def sources(search="", prefix="recent", page=0):
             .count()
         sources = session.query(Source)\
             .filter(Source.jobs.any(Job.finished_at == None))\
-            .order_by(Source.name.asc(), Source.id.desc())\
+            .order_by(Source.name.asc(), Source.uploaded_at.desc())\
             .offset(page * ENTRIES_PER_LIST_PAGE)\
             .limit(ENTRIES_PER_LIST_PAGE)\
             .all()
@@ -175,7 +175,7 @@ def sources(search="", prefix="recent", page=0):
         sources = session.query(Source)\
             .filter(Source.name.startswith("l"))\
             .filter(~Source.name.startswith("lib"))\
-            .order_by(Source.name.asc(), Source.id.desc())\
+            .order_by(Source.name.asc(), Source.uploaded_at.desc())\
             .offset(page * ENTRIES_PER_LIST_PAGE)\
             .limit(ENTRIES_PER_LIST_PAGE)\
             .all()
@@ -186,7 +186,7 @@ def sources(search="", prefix="recent", page=0):
             .count()
         sources = session.query(Source)\
             .filter(Source.name.startswith(prefix))\
-            .order_by(Source.name.asc(), Source.id.desc())\
+            .order_by(Source.name.asc(), Source.uploaded_at.desc())\
             .offset(page * ENTRIES_PER_LIST_PAGE)\
             .limit(ENTRIES_PER_LIST_PAGE)\
             .all()
@@ -225,7 +225,7 @@ def jobs(prefix="recent", page=0):
         desc = "All recent jobs."
         job_count = session.query(Job).count()
         jobs = session.query(Job).join(Source).join(Check)\
-            .order_by(Source.id.desc())\
+            .order_by(Source.uploaded_at.desc())\
             .offset(page * ENTRIES_PER_LIST_PAGE)\
             .limit(ENTRIES_PER_LIST_PAGE)\
             .all()
@@ -236,7 +236,7 @@ def jobs(prefix="recent", page=0):
             .count()
         jobs = session.query(Job).join(Source).join(Check)\
             .filter(Job.finished_at == None)\
-            .order_by(Source.name.asc(), Source.id.desc(),
+            .order_by(Source.name.asc(), Source.uploaded_at.desc(),
                       Check.build.desc(), Check.id.asc(),
                       Job.id.asc())\
             .offset(page * ENTRIES_PER_LIST_PAGE)\
@@ -251,7 +251,7 @@ def jobs(prefix="recent", page=0):
         jobs = session.query(Job).join(Source).join(Check)\
             .filter(Source.name.startswith("l"))\
             .filter(~Source.name.startswith("lib"))\
-            .order_by(Source.name.asc(), Source.id.desc(),
+            .order_by(Source.name.asc(), Source.uploaded_at.desc(),
                       Check.build.desc(), Check.id.asc(),
                       Job.id.asc())\
             .offset(page * ENTRIES_PER_LIST_PAGE)\
@@ -264,7 +264,7 @@ def jobs(prefix="recent", page=0):
             .count()
         jobs = session.query(Job).join(Source).join(Check)\
             .filter(Source.name.startswith(prefix))\
-            .order_by(Source.name.asc(), Source.id.desc(),
+            .order_by(Source.name.asc(), Source.uploaded_at.desc(),
                       Check.build.desc(), Check.id.asc(),
                       Job.id.asc())\
             .offset(page * ENTRIES_PER_LIST_PAGE)\
@@ -312,7 +312,7 @@ def group(name, page=0):
         .count()
     sources = session.query(Source)\
         .filter(GroupSuite.group == group)\
-        .order_by(Source.id.desc())\
+        .order_by(Source.uploaded_at.desc())\
         .offset(page * ENTRIES_PER_PAGE)\
         .limit(ENTRIES_PER_PAGE)\
         .all()
@@ -353,7 +353,7 @@ def builder(name, page=0):
     job_count = session.query(Job).filter(Job.builder == builder).count()
     jobs = session.query(Job).join(Source)\
         .filter(Job.builder == builder)\
-        .order_by(Job.id.desc())\
+        .order_by(Job.assigned_at.desc())\
         .offset(page * ENTRIES_PER_PAGE)\
         .limit(ENTRIES_PER_PAGE)\
         .all()
@@ -408,7 +408,7 @@ def user(email, page=0):
         .count()
     sources = session.query(Source)\
         .filter(Source.uploader == user)\
-        .order_by(Source.id.desc())\
+        .order_by(Source.uploaded_at.desc())\
         .offset(page * ENTRIES_PER_PAGE)\
         .limit(ENTRIES_PER_PAGE)\
         .all()
@@ -429,7 +429,7 @@ def user(email, page=0):
             .filter(Job.assigned_at != None)\
             .filter(Job.finished_at == None)\
             .filter(Job.builder == builder)\
-            .order_by(Job.id.desc())\
+            .order_by(Job.assigned_at.desc())\
             .all()
         jobs_info = []
         for job in jobs:
@@ -476,7 +476,7 @@ def source(group_name, package_name, suite_or_version):
         .filter(Source.name == package_name)\
         .filter((Source.version == suite_or_version) |
                 (Suite.name == suite_or_version))\
-        .order_by(Source.id.desc()).first()
+        .order_by(Source.uploaded_at.desc()).first()
 
     if not source:
         return render_template('source-not-found.html', **{
@@ -489,7 +489,7 @@ def source(group_name, package_name, suite_or_version):
     versions = session.query(Source.version)\
         .filter(Group.name == group_name)\
         .filter(Source.name == package_name)\
-        .order_by(Source.id.desc()).all()
+        .order_by(Source.uploaded_at.desc()).all()
 
     versions_info = []
     if len(versions) > 1:
