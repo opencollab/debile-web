@@ -24,6 +24,7 @@
 from flask import Blueprint, render_template, request, redirect
 from flask.ext.jsonpify import jsonify
 from sqlalchemy.orm import joinedload
+from debian.debian_support import Version
 
 from debile.master.utils import make_session
 from debile.master.orm import (Person, Builder, Suite, Component, Arch, Check,
@@ -488,8 +489,8 @@ def source(group_name, package_name, suite_or_version):
     # Find all versions of this package
     versions = session.query(Source.version)\
         .filter(Group.name == group_name)\
-        .filter(Source.name == package_name)\
-        .order_by(Source.uploaded_at.desc()).all()
+        .filter(Source.name == package_name)
+    versions = sorted([x[0] for x in versions], key=Version, reverse=True)
 
     versions_info = []
     if len(versions) > 1:
