@@ -73,7 +73,7 @@ def index():
         info = {}
         info['builder'] = builder
         info['builder_link'] = "/builder/%s" % builder.name
-        info['maintainer_link'] = "/user/%s" % group.maintainer.email
+        info['maintainer_link'] = "/user/%s" % builder.maintainer.email
         jobs = session.query(Job).join(Source)\
             .filter(Job.assigned_at != None)\
             .filter(Job.finished_at == None)\
