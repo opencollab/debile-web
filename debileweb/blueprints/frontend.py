@@ -125,13 +125,7 @@ def sources(search="", prefix="recent", page=0):
 
     if request.path.startswith("/maintainer/"):
         desc = "Search results for maintainer '%s'" % search
-        source_count = session.query(Source).filter(
-            Source.maintainers.any(
-                Maintainer.name.contains(search) |
-                Maintainer.email.contains(search)
-            ),
-        ).count()
-        sources = session.query(Source).filter(
+        query = session.query(Source).filter(
             Source.maintainers.any(
                 Maintainer.name.contains(search) |
                 Maintainer.email.contains(search)
@@ -139,59 +133,48 @@ def sources(search="", prefix="recent", page=0):
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
-        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
+        )
     elif request.path.startswith("/source/"):
         desc = "Search results for source '%s'" % search
-        source_count = session.query(Source).filter(
-            Source.name.contains(search),
-        ).count()
-        sources = session.query(Source).filter(
+        query = session.query(Source).filter(
             Source.name.contains(search),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
-        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
+        )
     elif prefix == "recent":
         desc = "All recent sources."
-        source_count = session.query(Source).count()
-        sources = session.query(Source).order_by(
+        query = session.query(Source).order_by(
             Source.uploaded_at.desc(),
-        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
+        )
     elif prefix == "incomplete":
         desc = "All incomplete sources."
-        source_count = session.query(Source).filter(
-            Source.jobs.any(Job.finished_at == None),
-        ).count()
-        sources = session.query(Source).filter(
+        query = session.query(Source).filter(
             Source.jobs.any(Job.finished_at == None),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
-        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
+        )
     elif prefix == "l":
         desc = "All sources for packages beginning with 'l'"
-        source_count = session.query(Source).filter(
-            Source.name.startswith("l"),
-            ~Source.name.startswith("lib"),
-        ).count()
-        sources = session.query(Source).filter(
+        query = session.query(Source).filter(
             Source.name.startswith("l"),
             ~Source.name.startswith("lib"),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
-        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
+        )
     else:
         desc = "All sources for packages beginning with '%s'" % prefix
-        source_count = session.query(Source).filter(
-            Source.name.startswith(prefix),
-        ).count()
-        sources = session.query(Source).filter(
+        query = session.query(Source).filter(
             Source.name.startswith(prefix),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
-        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
+        )
+
+    source_count = query.count()
+    sources = query.offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
 
     sources_info = []
     for source in sources:
@@ -225,16 +208,12 @@ def jobs(prefix="recent", page=0):
 
     if prefix == "recent":
         desc = "All recent jobs."
-        job_count = session.query(Job).count()
-        jobs = session.query(Job).join(Job.source).order_by(
+        query = session.query(Job).join(Job.source).order_by(
             Source.uploaded_at.desc(),
-        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
+        )
     elif prefix == "incomplete":
         desc = "All incomplete jobs."
-        job_count = session.query(Job).filter(
-            Job.finished_at == None,
-        ).count()
-        jobs = session.query(Job).join(Job.source).join(Job.check).filter(
+        query = session.query(Job).join(Job.source).join(Job.check).filter(
             Job.finished_at == None
         ).order_by(
             Source.name.asc(),
@@ -242,14 +221,10 @@ def jobs(prefix="recent", page=0):
             Check.build.desc(),
             Check.id.asc(),
             Job.id.asc(),
-        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
+        )
     elif prefix == "l":
         desc = "All jobs for packages beginning with 'l'"
-        job_count = session.query(Job).join(Job.source).filter(
-            Source.name.startswith("l"),
-            ~Source.name.startswith("lib"),
-        ).count()
-        jobs = session.query(Job).join(Job.source).join(Job.check).filter(
+        query = session.query(Job).join(Job.source).join(Job.check).filter(
             Source.name.startswith("l"),
             ~Source.name.startswith("lib"),
         ).order_by(
@@ -258,13 +233,10 @@ def jobs(prefix="recent", page=0):
             Check.build.desc(),
             Check.id.asc(),
             Job.id.asc(),
-        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
+        )
     else:
         desc = "All jobs for packages beginning with '%s'" % prefix
-        job_count = session.query(Job).join(Job.source).filter(
-            Source.name.startswith(prefix),
-        ).count()
-        jobs = session.query(Job).join(Job.source).join(Job.check).filter(
+        query = session.query(Job).join(Job.source).join(Job.check).filter(
             Source.name.startswith(prefix),
         ).order_by(
             Source.name.asc(),
@@ -272,7 +244,10 @@ def jobs(prefix="recent", page=0):
             Check.build.desc(),
             Check.id.asc(),
             Job.id.asc(),
-        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
+        )
+
+    job_count = query.count()
+    jobs = query.offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
 
     jobs_info = []
     for job in jobs:
