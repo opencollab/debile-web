@@ -53,12 +53,12 @@ def ago_display(when):
 def index():
     session = make_session()
 
-    groups = session.query(Group)\
-        .order_by(Group.name.asc())\
-        .all()
-    builders = session.query(Builder)\
-        .order_by(Builder.name.asc())\
-        .all()
+    groups = session.query(Group).order_by(
+        Group.name.asc(),
+    ).all()
+    builders = session.query(Builder).order_by(
+        Builder.name.asc(),
+    ).all()
 
     groups_info = []
     for group in groups:
@@ -74,12 +74,13 @@ def index():
         info['builder'] = builder
         info['builder_link'] = "/builder/%s" % builder.name
         info['maintainer_link'] = "/user/%s" % builder.maintainer.email
-        jobs = session.query(Job).join(Source)\
-            .filter(Job.assigned_at != None)\
-            .filter(Job.finished_at == None)\
-            .filter(Job.builder == builder)\
-            .order_by(Job.assigned_at.desc())\
-            .all()
+        jobs = session.query(Job).filter(
+            Job.assigned_at != None,
+            Job.finished_at == None,
+            Job.builder == builder,
+        ).order_by(
+            Job.assigned_at.desc(),
+        ).all()
         jobs_info = []
         for job in jobs:
             jobinfo = {}
@@ -92,9 +93,9 @@ def index():
         info['jobs_info'] = jobs_info
         builders_info.append(info)
 
-    pending_jobs = session.query(Job)\
-        .filter(Job.assigned_at == None)\
-        .count()
+    pending_jobs = session.query(Job).filter(
+        Job.assigned_at == None,
+    ).count()
     form = SearchPackageForm()
 
     return render_template('index.html', **{
@@ -123,74 +124,74 @@ def sources(search="", prefix="recent", page=0):
         return redirect('/source/' + request.form['source'] + '/')
 
     if request.path.startswith("/maintainer/"):
-        source_count = session.query(Source)\
-            .count()
         desc = "Search results for maintainer '%s'" % search
-        source_count = session.query(Source)\
-            .filter(Source.maintainers.any(Maintainer.name.contains(search) |
-                                           Maintainer.email.contains(search)))\
-            .count()
-        sources = session.query(Source)\
-            .filter(Source.maintainers.any(Maintainer.name.contains(search) |
-                                           Maintainer.email.contains(search)))\
-            .order_by(Source.name.asc(), Source.uploaded_at.desc())\
-            .offset(page * ENTRIES_PER_LIST_PAGE)\
-            .limit(ENTRIES_PER_LIST_PAGE)\
-            .all()
+        source_count = session.query(Source).filter(
+            Source.maintainers.any(
+                Maintainer.name.contains(search) |
+                Maintainer.email.contains(search)
+            ),
+        ).count()
+        sources = session.query(Source).filter(
+            Source.maintainers.any(
+                Maintainer.name.contains(search) |
+                Maintainer.email.contains(search)
+            ),
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
     elif request.path.startswith("/source/"):
         desc = "Search results for source '%s'" % search
-        source_count = session.query(Source)\
-            .filter(Source.name.contains(search))\
-            .count()
-        sources = session.query(Source)\
-            .filter(Source.name.contains(search))\
-            .order_by(Source.name.asc(), Source.uploaded_at.desc())\
-            .offset(page * ENTRIES_PER_LIST_PAGE)\
-            .limit(ENTRIES_PER_LIST_PAGE)\
-            .all()
+        source_count = session.query(Source).filter(
+            Source.name.contains(search),
+        ).count()
+        sources = session.query(Source).filter(
+            Source.name.contains(search),
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
     elif prefix == "recent":
         desc = "All recent sources."
         source_count = session.query(Source).count()
-        sources = session.query(Source)\
-            .order_by(Source.uploaded_at.desc())\
-            .offset(page * ENTRIES_PER_LIST_PAGE)\
-            .limit(ENTRIES_PER_LIST_PAGE)\
-            .all()
+        sources = session.query(Source).order_by(
+            Source.uploaded_at.desc(),
+        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
     elif prefix == "incomplete":
         desc = "All incomplete sources."
-        source_count = session.query(Source)\
-            .filter(Source.jobs.any(Job.finished_at == None))\
-            .count()
-        sources = session.query(Source)\
-            .filter(Source.jobs.any(Job.finished_at == None))\
-            .order_by(Source.name.asc(), Source.uploaded_at.desc())\
-            .offset(page * ENTRIES_PER_LIST_PAGE)\
-            .limit(ENTRIES_PER_LIST_PAGE)\
-            .all()
+        source_count = session.query(Source).filter(
+            Source.jobs.any(Job.finished_at == None),
+        ).count()
+        sources = session.query(Source).filter(
+            Source.jobs.any(Job.finished_at == None),
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
     elif prefix == "l":
         desc = "All sources for packages beginning with 'l'"
-        source_count = session.query(Source)\
-            .filter(Source.name.startswith("l"))\
-            .filter(~Source.name.startswith("lib"))\
-            .count()
-        sources = session.query(Source)\
-            .filter(Source.name.startswith("l"))\
-            .filter(~Source.name.startswith("lib"))\
-            .order_by(Source.name.asc(), Source.uploaded_at.desc())\
-            .offset(page * ENTRIES_PER_LIST_PAGE)\
-            .limit(ENTRIES_PER_LIST_PAGE)\
-            .all()
+        source_count = session.query(Source).filter(
+            Source.name.startswith("l"),
+            ~Source.name.startswith("lib"),
+        ).count()
+        sources = session.query(Source).filter(
+            Source.name.startswith("l"),
+            ~Source.name.startswith("lib"),
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
     else:
         desc = "All sources for packages beginning with '%s'" % prefix
-        source_count = session.query(Source)\
-            .filter(Source.name.startswith(prefix))\
-            .count()
-        sources = session.query(Source)\
-            .filter(Source.name.startswith(prefix))\
-            .order_by(Source.name.asc(), Source.uploaded_at.desc())\
-            .offset(page * ENTRIES_PER_LIST_PAGE)\
-            .limit(ENTRIES_PER_LIST_PAGE)\
-            .all()
+        source_count = session.query(Source).filter(
+            Source.name.startswith(prefix),
+        ).count()
+        sources = session.query(Source).filter(
+            Source.name.startswith(prefix),
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
 
     sources_info = []
     for source in sources:
@@ -225,52 +226,53 @@ def jobs(prefix="recent", page=0):
     if prefix == "recent":
         desc = "All recent jobs."
         job_count = session.query(Job).count()
-        jobs = session.query(Job).join(Source).join(Check)\
-            .order_by(Source.uploaded_at.desc())\
-            .offset(page * ENTRIES_PER_LIST_PAGE)\
-            .limit(ENTRIES_PER_LIST_PAGE)\
-            .all()
+        jobs = session.query(Job).join(Job.source).order_by(
+            Source.uploaded_at.desc(),
+        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
     elif prefix == "incomplete":
         desc = "All incomplete jobs."
-        job_count = session.query(Job)\
-            .filter(Job.finished_at == None)\
-            .count()
-        jobs = session.query(Job).join(Source).join(Check)\
-            .filter(Job.finished_at == None)\
-            .order_by(Source.name.asc(), Source.uploaded_at.desc(),
-                      Check.build.desc(), Check.id.asc(),
-                      Job.id.asc())\
-            .offset(page * ENTRIES_PER_LIST_PAGE)\
-            .limit(ENTRIES_PER_LIST_PAGE)\
-            .all()
+        job_count = session.query(Job).filter(
+            Job.finished_at == None,
+        ).count()
+        jobs = session.query(Job).join(Job.source).join(Job.check).filter(
+            Job.finished_at == None
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+            Check.build.desc(),
+            Check.id.asc(),
+            Job.id.asc(),
+        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
     elif prefix == "l":
         desc = "All jobs for packages beginning with 'l'"
-        job_count = session.query(Job).join(Source)\
-            .filter(Source.name.startswith("l"))\
-            .filter(~Source.name.startswith("lib"))\
-            .count()
-        jobs = session.query(Job).join(Source).join(Check)\
-            .filter(Source.name.startswith("l"))\
-            .filter(~Source.name.startswith("lib"))\
-            .order_by(Source.name.asc(), Source.uploaded_at.desc(),
-                      Check.build.desc(), Check.id.asc(),
-                      Job.id.asc())\
-            .offset(page * ENTRIES_PER_LIST_PAGE)\
-            .limit(ENTRIES_PER_LIST_PAGE)\
-            .all()
+        job_count = session.query(Job).join(Job.source).filter(
+            Source.name.startswith("l"),
+            ~Source.name.startswith("lib"),
+        ).count()
+        jobs = session.query(Job).join(Job.source).join(Job.check).filter(
+            Source.name.startswith("l"),
+            ~Source.name.startswith("lib"),
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+            Check.build.desc(),
+            Check.id.asc(),
+            Job.id.asc(),
+        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
     else:
         desc = "All jobs for packages beginning with '%s'" % prefix
-        job_count = session.query(Job).join(Source)\
-            .filter(Source.name.startswith(prefix))\
-            .count()
-        jobs = session.query(Job).join(Source).join(Check)\
-            .filter(Source.name.startswith(prefix))\
-            .order_by(Source.name.asc(), Source.uploaded_at.desc(),
-                      Check.build.desc(), Check.id.asc(),
-                      Job.id.asc())\
-            .offset(page * ENTRIES_PER_LIST_PAGE)\
-            .limit(ENTRIES_PER_LIST_PAGE)\
-            .all()
+        job_count = session.query(Job).join(Job.source).filter(
+            Source.name.startswith(prefix),
+        ).count()
+        jobs = session.query(Job).join(Job.source).join(Job.check).filter(
+            Source.name.startswith(prefix),
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+            Check.build.desc(),
+            Check.id.asc(),
+            Job.id.asc(),
+        ).offset(page * ENTRIES_PER_LIST_PAGE).limit(ENTRIES_PER_LIST_PAGE).all()
 
     jobs_info = []
     for job in jobs:
@@ -304,19 +306,18 @@ def group(name, page=0):
     page = int(page)
     session = make_session()
 
-    group = session.query(Group)\
-        .filter(Group.name == name)\
-        .one()
+    group = session.query(Group).filter(
+        Group.name == name,
+    ).one()
 
-    source_count = session.query(Source)\
-        .filter(GroupSuite.group == group)\
-        .count()
-    sources = session.query(Source)\
-        .filter(GroupSuite.group == group)\
-        .order_by(Source.uploaded_at.desc())\
-        .offset(page * ENTRIES_PER_PAGE)\
-        .limit(ENTRIES_PER_PAGE)\
-        .all()
+    source_count = session.query(Source).filter(
+        GroupSuite.group == group,
+    ).count()
+    sources = session.query(Source).filter(
+        GroupSuite.group == group,
+    ).order_by(
+        Source.uploaded_at.desc(),
+    ).offset(page * ENTRIES_PER_PAGE).limit(ENTRIES_PER_PAGE).all()
 
     sources_info = []
     for source in sources:
@@ -347,17 +348,18 @@ def builder(name, page=0):
     page = int(page)
     session = make_session()
 
-    builder = session.query(Builder)\
-        .filter(Builder.name == name)\
-        .one()
+    builder = session.query(Builder).filter(
+        Builder.name == name,
+    ).one()
 
-    job_count = session.query(Job).filter(Job.builder == builder).count()
-    jobs = session.query(Job).join(Source)\
-        .filter(Job.builder == builder)\
-        .order_by(Job.assigned_at.desc())\
-        .offset(page * ENTRIES_PER_PAGE)\
-        .limit(ENTRIES_PER_PAGE)\
-        .all()
+    job_count = session.query(Job).filter(
+        Job.builder == builder,
+    ).count()
+    jobs = session.query(Job).filter(
+        Job.builder == builder,
+    ).order_by(
+        Job.assigned_at.desc(),
+    ).offset(page * ENTRIES_PER_PAGE).limit(ENTRIES_PER_PAGE).all()
 
     jobs_info = []
     for job in jobs:
@@ -390,29 +392,30 @@ def user(email, page=0):
     page = int(page)
     session = make_session()
 
-    user = session.query(Person)\
-        .filter(Person.email == email)\
-        .one()
+    user = session.query(Person).filter(
+        Person.email == email,
+    ).one()
 
-    groups = session.query(Group)\
-        .filter(Group.maintainer == user)\
-        .order_by(Group.name.asc())\
-        .all()
+    groups = session.query(Group).filter(
+        Group.maintainer == user,
+    ).order_by(
+        Group.name.asc(),
+    ).all()
 
-    builders = session.query(Builder)\
-        .filter(Builder.maintainer == user)\
-        .order_by(Builder.name.asc())\
-        .all()
+    builders = session.query(Builder).filter(
+        Builder.maintainer == user,
+    ).order_by(
+        Builder.name.asc(),
+    ).all()
 
-    source_count = session.query(Source)\
-        .filter(Source.uploader == user)\
-        .count()
-    sources = session.query(Source)\
-        .filter(Source.uploader == user)\
-        .order_by(Source.uploaded_at.desc())\
-        .offset(page * ENTRIES_PER_PAGE)\
-        .limit(ENTRIES_PER_PAGE)\
-        .all()
+    source_count = session.query(Source).filter(
+        Source.uploader == user,
+    ).count()
+    sources = session.query(Source).filter(
+        Source.uploader == user,
+    ).order_by(
+        Source.uploaded_at.desc(),
+    ).offset(page * ENTRIES_PER_PAGE).limit(ENTRIES_PER_PAGE).all()
 
     groups_info = []
     for group in groups:
@@ -426,12 +429,13 @@ def user(email, page=0):
         info = {}
         info['builder'] = builder
         info['builder_link'] = "/builder/%s" % builder.name
-        jobs = session.query(Job).join(Source)\
-            .filter(Job.assigned_at != None)\
-            .filter(Job.finished_at == None)\
-            .filter(Job.builder == builder)\
-            .order_by(Job.assigned_at.desc())\
-            .all()
+        jobs = session.query(Job).filter(
+            Job.assigned_at != None,
+            Job.finished_at == None,
+            Job.builder == builder,
+        ).order_by(
+            Job.assigned_at.desc(),
+        ).all()
         jobs_info = []
         for job in jobs:
             jobinfo = {}
@@ -472,12 +476,14 @@ def user(email, page=0):
 def source(group_name, package_name, suite_or_version):
     session = make_session()
 
-    source = session.query(Source)\
-        .filter(Group.name == group_name)\
-        .filter(Source.name == package_name)\
-        .filter((Source.version == suite_or_version) |
-                (Suite.name == suite_or_version))\
-        .order_by(Source.uploaded_at.desc()).first()
+    source = session.query(Source).filter(
+        Group.name == group_name,
+        Source.name == package_name,
+        (Source.version == suite_or_version) |
+        (Suite.name == suite_or_version),
+    ).order_by(
+        Source.uploaded_at.desc()
+    ).first()
 
     if not source:
         return render_template('source-not-found.html', **{
@@ -487,9 +493,12 @@ def source(group_name, package_name, suite_or_version):
         })
 
     # Find all versions of this package
-    versions = session.query(Source.version)\
-        .filter(Group.name == group_name)\
-        .filter(Source.name == package_name)
+    versions = session.query(
+        Source.version,
+    ).filter(
+        Group.name == group_name,
+        Source.name == package_name,
+    )
     versions = sorted([x[0] for x in versions], key=Version, reverse=True)
 
     versions_info = []
@@ -499,10 +508,13 @@ def source(group_name, package_name, suite_or_version):
                 (group_name, package_name, version)
             versions_info.append((version, href))
 
-    jobs = session.query(Job).join(Check)\
-        .filter(Job.source == source)\
-        .order_by(Check.build.desc(), Check.id.asc(), Job.id.asc())\
-        .all()
+    jobs = session.query(Job).join(Job.check).filter(
+        Job.source == source,
+    ).order_by(
+        Check.build.desc(),
+        Check.id.asc(),
+        Job.id.asc(),
+    ).all()
 
     total = len(jobs)
     unfinished = 0
@@ -577,9 +589,13 @@ def job(job_id, group_name="", package_name="", package_version="", version=""):
 def search_source():
     search = request.args.get('search[term]')
     session = make_session()
-    query = session.query(Source.name)\
-        .filter(Source.name.startswith(search))\
-        .group_by(Source.name).limit(10)
+    query = session.query(
+        Source.name,
+    ).filter(
+        Source.name.startswith(search),
+    ).group_by(
+        Source.name,
+    ).limit(10).all()
     result = [r[0] for r in query]
     return jsonify(result)
 
@@ -588,10 +604,16 @@ def search_source():
 def search_maintainer():
     search = request.args.get('search[term]')
     session = make_session()
-    query = session.query(Maintainer.name, Maintainer.email)\
-        .filter(Maintainer.name.startswith(search) |
-                Maintainer.email.startswith(search))\
-        .group_by(Maintainer.name, Maintainer.email).limit(10)
+    query = session.query(
+        Maintainer.name,
+        Maintainer.email,
+    ).filter(
+        Maintainer.name.startswith(search) |
+        Maintainer.email.startswith(search),
+    ).group_by(
+        Maintainer.name,
+        Maintainer.email,
+    ).limit(10).all()
     result = [r[0] if r[0].startswith(search) else r[1] for r in query]
     return jsonify(result)
 
