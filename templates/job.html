@@ -68,7 +68,7 @@
                 {% if job.finished_at %}
                     {% if job.check.build %}
                         {# Builds #}
-                        {% if job.failed is None %}
+                        {% if job.failed == None %}
                             ⧖ Upload Pending
                         {% elif job.failed %}
                             ✗ Failed
@@ -77,7 +77,7 @@
                         {% endif %}
                     {% else %}
                         {# Analyzers #}
-                        {% if job.failed is None %}
+                        {% if job.failed == None %}
                             ⧖ Upload Pending
                         {% elif job.failed %}
                             ✗ Errors found

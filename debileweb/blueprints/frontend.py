@@ -273,80 +273,66 @@ def jobs(prefix="recent", page=0):
 
     if prefix == "recent":
         desc = "All recently uploaded jobs."
-        query = session.query(Source).join(Job.source).join(Job.check).order_by(
+        query = session.query(Job).join(Job.source).order_by(
             Source.uploaded_at.desc(),
-            Check.build.desc(),
-            Check.id.asc(),
             Job.id.asc(),
         )
     elif prefix == "unfinished":
         desc = "All unfinished jobs."
-        query = session.query(Job).join(Job.source).join(Job.check).filter(
+        query = session.query(Job).join(Job.source).filter(
             Job.finished_at == None,
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
-            Check.build.desc(),
-            Check.id.asc(),
             Job.id.asc(),
         )
     elif prefix == "queued":
         desc = "All jobs in the queue."
-        query = session.query(Job).join(Job.source).join(Job.check).filter(
+        query = session.query(Job).join(Job.source).filter(
             Job.externally_blocked == False,
             ~Job.depedencies.any(),
             Job.assigned_at == None,
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
-            Check.build.desc(),
-            Check.id.asc(),
             Job.id.asc(),
         )
     elif prefix == "unbuilt":
         desc = "All unbuild build jobs."
-        query = session.query(Job).join(Job.source).join(Job.check).filter(
+        query = session.query(Job).join(Job.source).filter(
             Job.check.has(Check.build == True),
             Job.finished_at == None,
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
-            Check.build.desc(),
-            Check.id.asc(),
             Job.id.asc(),
         )
     elif prefix == "failed":
         desc = "All failed jobs."
-        query = session.query(Job).join(Job.source).join(Job.check).filter(
+        query = session.query(Job).join(Job.source).filter(
             Job.failed == True,
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
-            Check.build.desc(),
-            Check.id.asc(),
             Job.id.asc(),
         )
     elif prefix == "l":
         desc = "All jobs for packages beginning with 'l'"
-        query = session.query(Job).join(Job.source).join(Job.check).filter(
+        query = session.query(Job).join(Job.source).filter(
             Source.name.startswith("l"),
             ~Source.name.startswith("lib"),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
-            Check.build.desc(),
-            Check.id.asc(),
             Job.id.asc(),
         )
     else:
         desc = "All jobs for packages beginning with '%s'" % prefix
-        query = session.query(Job).join(Job.source).join(Job.check).filter(
+        query = session.query(Job).join(Job.source).filter(
             Source.name.startswith(prefix),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
-            Check.build.desc(),
-            Check.id.asc(),
             Job.id.asc(),
         )
 
@@ -587,11 +573,9 @@ def source(group_name, package_name, suite_or_version):
                 (group_name, package_name, version)
             versions_info.append((version, href))
 
-    jobs = session.query(Job).join(Job.check).filter(
+    jobs = session.query(Job).filter(
         Job.source == source,
     ).order_by(
-        Check.build.desc(),
-        Check.id.asc(),
         Job.id.asc(),
     ).all()
 

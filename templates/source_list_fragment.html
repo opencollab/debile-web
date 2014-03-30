@@ -30,7 +30,7 @@
             <td>
                 {% for job in info.source.jobs %}
                     {% if job.finished_at %}
-                        {% if job.failed is None %}
+                        {% if job.failed == None %}
                             ⧖
                         {% elif job.failed %}
                             ✗
