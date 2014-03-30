@@ -93,15 +93,49 @@ def index():
         info['jobs_info'] = jobs_info
         builders_info.append(info)
 
-    pending_jobs = session.query(Job).filter(
+    info = {}
+    info['unfinished_sources'] = session.query(Source).filter(
+        Source.jobs.any(Job.finished_at == None),
+    ).count()
+    info['queued_sources'] = session.query(Source).filter(
+        Source.jobs.any(
+            ~Job.depedencies.any() &
+            (Job.externally_blocked == False) &
+            (Job.assigned_at == None)
+        ),
+    ).count()
+    info['unbuilt_sources'] = session.query(Source).filter(
+        Source.jobs.any(
+            Job.check.has(Check.build == True) &
+            (Job.finished_at == None)
+        ),
+    ).count()
+    info['failed_sources'] = session.query(Source).filter(
+        Source.jobs.any(Job.failed == True),
+    ).count()
+
+    info['unfinished_jobs'] = session.query(Job).filter(
+        Job.finished_at == None,
+    ).count()
+    info['queued_jobs'] = session.query(Job).filter(
+        ~Job.depedencies.any(),
+        Job.externally_blocked == False,
         Job.assigned_at == None,
     ).count()
+    info['unbuilt_jobs'] = session.query(Job).filter(
+        Job.check.has(Check.build == True),
+        Job.finished_at == None,
+    ).count()
+    info['failed_jobs'] = session.query(Job).filter(
+        Job.failed == True,
+    ).count()
+
     form = SearchPackageForm()
 
     return render_template('index.html', **{
         "groups_info": groups_info,
         "builders_info": builders_info,
-        "pending_jobs": pending_jobs,
+        "info": info,
         "prefixes": PREFIXES,
         "form": form
     })
@@ -135,7 +169,7 @@ def sources(search="", prefix="recent", page=0):
             Source.uploaded_at.desc(),
         )
     elif request.path.startswith("/source/"):
-        desc = "Search results for source '%s'" % search
+        desc = "Search results for source package '%s'" % search
         query = session.query(Source).filter(
             Source.name.contains(search),
         ).order_by(
@@ -143,14 +177,45 @@ def sources(search="", prefix="recent", page=0):
             Source.uploaded_at.desc(),
         )
     elif prefix == "recent":
-        desc = "All recent sources."
+        desc = "All recently uploaded source packages."
         query = session.query(Source).order_by(
             Source.uploaded_at.desc(),
         )
-    elif prefix == "incomplete":
-        desc = "All incomplete sources."
+    elif prefix == "unfinished":
+        desc = "All source packages with unfinished jobs."
         query = session.query(Source).filter(
             Source.jobs.any(Job.finished_at == None),
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+        )
+    elif prefix == "queued":
+        desc = "All source packages with jobs in the queue."
+        query = session.query(Source).filter(
+            Source.jobs.any(
+                ~Job.depedencies.any() &
+                (Job.externally_blocked == False) &
+                (Job.assigned_at == None)
+            ),
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+        )
+    elif prefix == "unbuilt":
+        desc = "All source packages with unbuild build jobs."
+        query = session.query(Source).filter(
+            Source.jobs.any(
+                Job.check.has(Check.build == True) &
+                (Job.finished_at == None)
+            ),
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+        )
+    elif prefix == "failed":
+        desc = "All source packages with failed jobs."
+        query = session.query(Source).filter(
+            Source.jobs.any(Job.failed == True),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
@@ -207,14 +272,53 @@ def jobs(prefix="recent", page=0):
     session = make_session()
 
     if prefix == "recent":
-        desc = "All recent jobs."
-        query = session.query(Job).join(Job.source).order_by(
+        desc = "All recently uploaded jobs."
+        query = session.query(Source).join(Job.source).join(Job.check).order_by(
             Source.uploaded_at.desc(),
+            Check.build.desc(),
+            Check.id.asc(),
+            Job.id.asc(),
         )
-    elif prefix == "incomplete":
-        desc = "All incomplete jobs."
+    elif prefix == "unfinished":
+        desc = "All unfinished jobs."
         query = session.query(Job).join(Job.source).join(Job.check).filter(
-            Job.finished_at == None
+            Job.finished_at == None,
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+            Check.build.desc(),
+            Check.id.asc(),
+            Job.id.asc(),
+        )
+    elif prefix == "queued":
+        desc = "All jobs in the queue."
+        query = session.query(Job).join(Job.source).join(Job.check).filter(
+            Job.externally_blocked == False,
+            ~Job.depedencies.any(),
+            Job.assigned_at == None,
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+            Check.build.desc(),
+            Check.id.asc(),
+            Job.id.asc(),
+        )
+    elif prefix == "unbuilt":
+        desc = "All unbuild build jobs."
+        query = session.query(Job).join(Job.source).join(Job.check).filter(
+            Job.check.has(Check.build == True),
+            Job.finished_at == None,
+        ).order_by(
+            Source.name.asc(),
+            Source.uploaded_at.desc(),
+            Check.build.desc(),
+            Check.id.asc(),
+            Job.id.asc(),
+        )
+    elif prefix == "failed":
+        desc = "All failed jobs."
+        query = session.query(Job).join(Job.source).join(Job.check).filter(
+            Job.failed == True,
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
