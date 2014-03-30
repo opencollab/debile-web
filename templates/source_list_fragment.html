@@ -30,17 +30,19 @@
             <td>
                 {% for job in info.source.jobs %}
                     {% if job.finished_at %}
-                        {% if job.failed %}
+                        {% if job.failed is None %}
+                            ⧖
+                        {% elif job.failed %}
                             ✗
                         {% else %}
                             ✓
                         {% endif %}
+                    {% elif job.assigned_at %}
+                        ⧖
+                    {% elif job.externally_blocked or job.depedencies %}
+                        ∞
                     {% else %}
-                        {% if job.assigned_at %}
-                            ⧖
-                        {% else %}
-                            ⌚
-                        {% endif %}
+                        ⌚
                     {% endif %}
                 {% endfor %}
             </td>

@@ -68,15 +68,29 @@
                 {% if job.finished_at %}
                     {% if job.check.build %}
                         {# Builds #}
-                        {% if job.failed %}Failed{% else %}Uploaded{% endif %}
+                        {% if job.failed is None %}
+                            ⧖ Upload Pending
+                        {% elif job.failed %}
+                            ✗ Failed
+                        {% else %}
+                            ✓ Uploaded
+                        {% endif %}
                     {% else %}
                         {# Analyzers #}
-                        {% if job.failed %}✗ Errors found{% else %}✓ No errors found{% endif %}
+                        {% if job.failed is None %}
+                            ⧖ Upload Pending
+                        {% elif job.failed %}
+                            ✗ Errors found
+                        {% else %}
+                            ✓ No errors found
+                        {% endif %}
                     {% endif %}
+                {% elif job.assigned_at %}
+                    ⧖ Building
                 {% elif job.externally_blocked or job.depedencies %}
-                    Dep-Wait
+                    ∞ Dep-Wait
                 {% else %}
-                    Needs-Build
+                    ⌚ Needs-Build
                 {% endif %}
             </div>
         </div>
