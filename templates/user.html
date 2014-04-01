@@ -7,6 +7,10 @@
     <div class='block'>
     <h1>{{user.name}}</h1>
         <div class='desc_line'>
+            <div class='desc_key'>ID</div>
+            <div class='desc_value'>{{user.id}}</div>
+        </div>
+        <div class='desc_line'>
             <div class='desc_key'>Name</div>
             <div class='desc_value'>{{user.name}}</div>
         </div>
@@ -15,11 +19,11 @@
             <div class='desc_value'><a href='mailto:{{user.email}}'>{{user.email}}</a></div>
         </div>
         <div class='desc_line'>
-            <div class='desc_key'>PGP Fingerprint:</div>
+            <div class='desc_key'>PGP Fingerprint</div>
             <div class='desc_value'>{{user.pgp}}</div>
         </div>
         <div class='desc_line'>
-            <div class='desc_key'>SSL Fingerprint:</div>
+            <div class='desc_key'>SSL Fingerprint</div>
             <div class='desc_value'>{{user.ssl}}</div>
         </div>
     </div>
