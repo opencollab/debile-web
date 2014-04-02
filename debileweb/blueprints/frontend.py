@@ -107,7 +107,7 @@ def index():
     info['unbuilt_sources'] = session.query(Source).filter(
         Source.jobs.any(
             Job.check.has(Check.build == True) &
-            (Job.finished_at == None)
+            ~Job.failed.is_(False)
         ),
     ).count()
     info['failed_sources'] = session.query(Source).filter(
@@ -124,7 +124,7 @@ def index():
     ).count()
     info['unbuilt_jobs'] = session.query(Job).filter(
         Job.check.has(Check.build == True),
-        Job.finished_at == None,
+        ~Job.failed.is_(False),
     ).count()
     info['failed_jobs'] = session.query(Job).filter(
         Job.failed.is_(True),
@@ -202,11 +202,11 @@ def sources(search="", prefix="recent", page=0):
             Source.uploaded_at.desc(),
         )
     elif prefix == "unbuilt":
-        desc = "All source packages with unbuild build jobs."
+        desc = "All source packages with unbuilt build jobs."
         query = session.query(Source).filter(
             Source.jobs.any(
                 Job.check.has(Check.build == True) &
-                (Job.finished_at == None)
+                ~Job.failed.is_(False)
             ),
         ).order_by(
             Source.name.asc(),
@@ -298,10 +298,10 @@ def jobs(prefix="recent", page=0):
             Job.id.asc(),
         )
     elif prefix == "unbuilt":
-        desc = "All unbuild build jobs."
+        desc = "All unbuilt build jobs."
         query = session.query(Job).join(Job.source).filter(
             Job.check.has(Check.build == True),
-            Job.finished_at == None,
+            ~Job.failed.is_(False),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
