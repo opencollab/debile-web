@@ -23,13 +23,11 @@
 
 from flask import Blueprint, render_template, request, redirect
 from flask.ext.jsonpify import jsonify
-from sqlalchemy.orm import joinedload
 from debian.debian_support import Version
 
 from debile.master.utils import make_session
-from debile.master.orm import (Person, Builder, Suite, Component, Arch, Check,
-                               Group, GroupSuite, Source, Maintainer, Binary,
-                               Job, JobDependencies, Result)
+from debile.master.orm import (Person, Builder, Suite, Check,
+                               Group, GroupSuite, Source, Maintainer, Job)
 
 from debileweb.blueprints.forms import SearchPackageForm
 from debileweb.blueprints.consts import PREFIXES, ENTRIES_PER_PAGE, ENTRIES_PER_LIST_PAGE
@@ -622,7 +620,8 @@ def job(job_id, group_name="", package_name="", package_version="", version=""):
     info['source_link'] = '/source/%s/%s/%s' % \
         (job.group.name, job.source.name, job.source.version)
     info['binary_link'] = '/job/%s/%s/%s/%d' % \
-        (job.group.name, job.binary.name, job.binary.version, job.binary.build_job_id) if (job.binary and job.binary.build_job_id) else None
+        (job.group.name, job.binary.name, job.binary.version, job.binary.build_job_id) \
+        if (job.binary and job.binary.build_job_id) else None
     info['builder_link'] = "/builder/%s" % job.builder.name if job.builder else None
 
     info['job_runtime'] = None
@@ -633,18 +632,32 @@ def job(job_id, group_name="", package_name="", package_version="", version=""):
         info['job_runtime'] = '%dh %02dm %02ds' % \
             (hours, minutes, seconds)
 
-    info['dud_name'] = "%d.dud" % job.id
-    info['log_name'] = "%d.log" % job.id
-    info['firehose_name'] = "%d.firehose.xml" % job.id
-    special_files = [info['dud_name'], info['log_name'], info['firehose_name']]
-    try:
-        info['files'] = sorted([x for x in os.listdir(job.files_path) if x not in special_files])
-    except OSError:
-        info['files'] = []
+    results_info = []
+    for result in job.results:
+        try:
+            resultinfo = {}
+            resultinfo['result'] = result
+            resultinfo['dud_name'] = None
+            resultinfo['log_name'] = None
+            resultinfo['firehose_name'] = None
+            resultinfo['files'] = []
+            for fname in os.listdir(result.path):
+                if fname.endswith(".dud"):
+                    resultinfo['dud_name'] = fname
+                elif fname.endswith(".log"):
+                    resultinfo['log_name'] = fname
+                elif fname.endswith(".firehose.xml"):
+                    resultinfo['firehose_name'] = fname
+                else:
+                    resultinfo['files'] += [fname]
+            results_info.append(resultinfo)
+        except OSError:
+            pass
 
     return render_template('job.html', **{
         "job": job,
         "info": info,
+        "results_info": results_info,
     })
 
 

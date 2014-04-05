@@ -60,6 +60,18 @@
                 <div class='desc_value'><a href='{{info.builder_link}}'>{{job.builder.name}}</a></div>
             </div>
         {% endif %}
+        {% if job.assigned_at %}
+            <div class='desc_line'>
+                <div class='desc_key'>Assigned</div>
+                <div class='desc_value'>{{job.assigned_at|ago}}</div>
+            </div>
+        {% endif %}
+        {% if job.finished_at %}
+            <div class='desc_line'>
+                <div class='desc_key'>Finished</div>
+                <div class='desc_value'>{{job.finished_at|ago}}</div>
+            </div>
+        {% endif %}
         {% if info.job_runtime %}
             <div class='desc_line'>
                 <div class='desc_key'>Build time</div>
@@ -100,31 +112,53 @@
         </div>
     </div>
 
-    {% if job.finished_at %}
+    {% for info in results_info %}
     <div class='block'>
-        <h3>Downloads</h3>
+        <h3>Result {{info.result.id}}</h3>
         <div class='desc_line'>
-            <div class='desc_key'>Uploaded dud</div>
-            <div class='desc_value'><a href='{{job.files_url}}/{{info.dud_name}}'>{{info.dud_name}}</a></div>
+            <div class='desc_key'>Uploaded</div>
+            <div class='desc_value'>{{info.result.uploaded_at|ago}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Job dud</div>
+            <div class='desc_value'><a href='{{info.result.url}}/{{info.dud_name}}'>{{info.dud_name}}</a></div>
         </div>
         <div class='desc_line'>
             <div class='desc_key'>Job Log</div>
-            <div class='desc_value'><a href='{{job.files_url}}/{{info.log_name}}'>{{info.log_name}}</a></div>
+            <div class='desc_value'><a href='{{info.result.url}}/{{info.log_name}}'>{{info.log_name}}</a></div>
         </div>
         <div class='desc_line'>
             <div class='desc_key'>Firehose Report</div>
-            <div class='desc_value'><a href='{{job.files_url}}/{{info.firehose_name}}'>{{info.firehose_name}}</a></div>
+            <div class='desc_value'><a href='{{info.result.url}}/{{info.firehose_name}}'>{{info.firehose_name}}</a></div>
         </div>
         {% if info.files %}
             <div class='desc_line'>
                 <div class='desc_key'>Additional Files</div>
                 <div class='desc_value'>
                     {% for file in info.files %}
-                        <a href='{{job.files_url}}/{{file}}'>{{file}}</a><br />
+                        <a href='{{info.result.url}}/{{file}}'>{{file}}</a><br />
                     {% endfor %}
                 </div>
             </div>
         {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if job.built_binary %}
+    <div class='block'>
+        <h3>Binary packages</h3>
+        <div class='desc_line'>
+            <div class='desc_key'>Uploaded</div>
+            <div class='desc_value'>{{job.built_binary.uploaded_at|ago}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Binary packages</div>
+            <div class='desc_value'>
+                {% for deb in job.built_binary.debs %}
+                    <a href='{{deb.url}}'>{{deb.filename}}</a><br />
+                {% endfor %}
+            </div>
+        </div>
     </div>
     {% endif %}
 

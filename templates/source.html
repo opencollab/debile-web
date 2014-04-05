@@ -51,6 +51,14 @@
             <div class='desc_key'>Uploader</div>
             <div class='desc_value'><a href='{{info.uploader_link}}'>{{source.uploader.name}}</a></div>
         </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Uploaded</div>
+            <div class='desc_value'>{{source.uploaded_at|ago}}</div>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Dsc</div>
+            <div class='desc_value'><a href='{{source.dsc_url}}'>{{source.dsc_filename}}</a></div>
+        </div>
     </div>
 
     <div class='block'>
