@@ -111,7 +111,7 @@ def index():
         ),
     ).count()
     info['failed_sources'] = session.query(Source).filter(
-        Source.jobs.any(Job.failed == True),
+        Source.jobs.any(Job.failed.is_(True)),
     ).count()
 
     info['unfinished_jobs'] = session.query(Job).filter(
@@ -127,7 +127,7 @@ def index():
         Job.finished_at == None,
     ).count()
     info['failed_jobs'] = session.query(Job).filter(
-        Job.failed == True,
+        Job.failed.is_(True),
     ).count()
 
     form = SearchPackageForm()
@@ -215,7 +215,7 @@ def sources(search="", prefix="recent", page=0):
     elif prefix == "failed":
         desc = "All source packages with failed jobs."
         query = session.query(Source).filter(
-            Source.jobs.any(Job.failed == True),
+            Source.jobs.any(Job.failed.is_(True)),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
@@ -310,7 +310,7 @@ def jobs(prefix="recent", page=0):
     elif prefix == "failed":
         desc = "All failed jobs."
         query = session.query(Job).join(Job.source).filter(
-            Job.failed == True,
+            Job.failed.is_(True),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
