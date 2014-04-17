@@ -88,6 +88,8 @@
                             ⧖ Upload Pending
                         {% elif job.failed %}
                             ✗ Failed
+                        {% elif not job.built_binary %}
+                            ⧖ Upload Pending
                         {% else %}
                             ✓ Uploaded
                         {% endif %}
