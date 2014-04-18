@@ -105,7 +105,7 @@ def index():
     info['unbuilt_sources'] = session.query(Source).filter(
         Source.jobs.any(
             Job.check.has(Check.build == True) &
-            ~Job.failed.is_(False)
+            (Job.built_binary == None)
         ),
     ).count()
     info['failed_sources'] = session.query(Source).filter(
@@ -122,7 +122,7 @@ def index():
     ).count()
     info['unbuilt_jobs'] = session.query(Job).filter(
         Job.check.has(Check.build == True),
-        ~Job.failed.is_(False),
+        Job.built_binary == None,
     ).count()
     info['failed_jobs'] = session.query(Job).filter(
         Job.failed.is_(True),
@@ -204,7 +204,7 @@ def sources(search="", prefix="recent", page=0):
         query = session.query(Source).filter(
             Source.jobs.any(
                 Job.check.has(Check.build == True) &
-                ~Job.failed.is_(False)
+                (Job.built_binary == None)
             ),
         ).order_by(
             Source.name.asc(),
@@ -299,7 +299,7 @@ def jobs(prefix="recent", page=0):
         desc = "All unbuilt build jobs."
         query = session.query(Job).join(Job.source).filter(
             Job.check.has(Check.build == True),
-            ~Job.failed.is_(False),
+            Job.built_binary == None,
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
