@@ -25,7 +25,7 @@ from flask import Blueprint, render_template, request, redirect
 from flask.ext.jsonpify import jsonify
 from debian.debian_support import Version
 
-from debile.master.utils import make_session
+from debile.master.utils import Session
 from debile.master.orm import (Person, Builder, Suite, Check,
                                Group, GroupSuite, Source, Maintainer, Job)
 
@@ -49,7 +49,7 @@ def ago_display(when):
 
 @frontend.route("/")
 def index():
-    session = make_session()
+    session = Session()
 
     groups = session.query(Group).order_by(
         Group.name.asc(),
@@ -152,7 +152,7 @@ def index():
 @frontend.route("/sources/<prefix>/<page>/")
 def sources(search="", prefix="recent", page=0):
     page = int(page)
-    session = make_session()
+    session = Session()
 
     if request.path == "/maintainer/search/":
         return redirect('/maintainer/' + request.form['maintainer'] + '/')
@@ -273,7 +273,7 @@ def sources(search="", prefix="recent", page=0):
 @frontend.route("/jobs/<prefix>/<page>/")
 def jobs(prefix="recent", page=0):
     page = int(page)
-    session = make_session()
+    session = Session()
 
     if prefix == "recent":
         desc = "All recently uploaded jobs."
@@ -374,7 +374,7 @@ def jobs(prefix="recent", page=0):
 @frontend.route("/group/<name>/<page>/")
 def group(name, page=0):
     page = int(page)
-    session = make_session()
+    session = Session()
 
     group = session.query(Group).filter(
         Group.name == name,
@@ -416,7 +416,7 @@ def group(name, page=0):
 @frontend.route("/builder/<name>/<page>")
 def builder(name, page=0):
     page = int(page)
-    session = make_session()
+    session = Session()
 
     builder = session.query(Builder).filter(
         Builder.name == name,
@@ -460,7 +460,7 @@ def builder(name, page=0):
 @frontend.route("/user/<email>/<page>/")
 def user(email, page=0):
     page = int(page)
-    session = make_session()
+    session = Session()
 
     user = session.query(Person).filter(
         Person.email == email,
@@ -544,7 +544,7 @@ def user(email, page=0):
 
 @frontend.route("/source/<group_name>/<package_name>/<suite_or_version>/")
 def source(group_name, package_name, suite_or_version):
-    session = make_session()
+    session = Session()
 
     source = session.query(Source).filter(
         Group.name == group_name,
@@ -619,7 +619,7 @@ def source(group_name, package_name, suite_or_version):
 @frontend.route("/job/<group_name>/<package_name>/<package_version>/<job_id>/")
 def job(job_id, group_name="", package_name="", package_version="", version=""):
     job_id = int(job_id)
-    session = make_session()
+    session = Session()
 
     job = session.query(Job).get(job_id)
 
@@ -671,7 +671,7 @@ def job(job_id, group_name="", package_name="", package_version="", version=""):
 @frontend.route('/_search_source')
 def search_source():
     search = request.args.get('search[term]')
-    session = make_session()
+    session = Session()
     query = session.query(
         Source.name,
     ).filter(
@@ -686,7 +686,7 @@ def search_source():
 @frontend.route('/_search_maintainer')
 def search_maintainer():
     search = request.args.get('search[term]')
-    session = make_session()
+    session = Session()
     query = session.query(
         Maintainer.name,
         Maintainer.email,
