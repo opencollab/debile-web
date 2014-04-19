@@ -99,7 +99,8 @@ def index():
         Source.jobs.any(
             ~Job.depedencies.any() &
             (Job.externally_blocked == False) &
-            (Job.assigned_at == None)
+            (Job.assigned_at == None) &
+            (Job.finished_at == None)
         ),
     ).count()
     info['unbuilt_sources'] = session.query(Source).filter(
@@ -119,6 +120,7 @@ def index():
         ~Job.depedencies.any(),
         Job.externally_blocked == False,
         Job.assigned_at == None,
+        Job.finished_at == None,
     ).count()
     info['unbuilt_jobs'] = session.query(Job).filter(
         Job.check.has(Check.build == True),
@@ -193,7 +195,8 @@ def sources(search="", prefix="recent", page=0):
             Source.jobs.any(
                 ~Job.depedencies.any() &
                 (Job.externally_blocked == False) &
-                (Job.assigned_at == None)
+                (Job.assigned_at == None) &
+                (Job.finished_at == None)
             ),
         ).order_by(
             Source.name.asc(),
@@ -286,14 +289,14 @@ def jobs(prefix="recent", page=0):
         )
     elif prefix == "queued":
         desc = "All jobs in the queue."
-        query = session.query(Job).join(Job.source).filter(
+        query = session.query(Job).join(Job.source).join(Job.check).filter(
             Job.externally_blocked == False,
             ~Job.depedencies.any(),
             Job.assigned_at == None,
+            Job.finished_at == None,
         ).order_by(
-            Source.name.asc(),
-            Source.uploaded_at.desc(),
-            Job.id.asc(),
+            Check.build.desc(),
+            Source.uploaded_at.asc(),
         )
     elif prefix == "unbuilt":
         desc = "All unbuilt build jobs."
