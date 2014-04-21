@@ -93,14 +93,15 @@ def index():
 
     info = {}
     info['unfinished_sources'] = session.query(Source).filter(
-        Source.jobs.any(Job.finished_at == None),
+        Source.jobs.any(Job.failed.is_(None)),
     ).count()
     info['queued_sources'] = session.query(Source).filter(
         Source.jobs.any(
             ~Job.depedencies.any() &
             (Job.externally_blocked == False) &
             (Job.assigned_at == None) &
-            (Job.finished_at == None)
+            (Job.finished_at == None) &
+            Job.failed.is_(None)
         ),
     ).count()
     info['unbuilt_sources'] = session.query(Source).filter(
@@ -114,13 +115,14 @@ def index():
     ).count()
 
     info['unfinished_jobs'] = session.query(Job).filter(
-        Job.finished_at == None,
+        Job.failed.is_(None),
     ).count()
     info['queued_jobs'] = session.query(Job).filter(
         ~Job.depedencies.any(),
         Job.externally_blocked == False,
         Job.assigned_at == None,
         Job.finished_at == None,
+        Job.failed.is_(None),
     ).count()
     info['unbuilt_jobs'] = session.query(Job).filter(
         Job.check.has(Check.build == True),
@@ -184,7 +186,7 @@ def sources(search="", prefix="recent", page=0):
     elif prefix == "unfinished":
         desc = "All source packages with unfinished jobs."
         query = session.query(Source).filter(
-            Source.jobs.any(Job.finished_at == None),
+            Source.jobs.any(Job.failed.is_(None)),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
@@ -196,7 +198,8 @@ def sources(search="", prefix="recent", page=0):
                 ~Job.depedencies.any() &
                 (Job.externally_blocked == False) &
                 (Job.assigned_at == None) &
-                (Job.finished_at == None)
+                (Job.finished_at == None) &
+                Job.failed.is_(None)
             ),
         ).order_by(
             Source.name.asc(),
@@ -281,7 +284,7 @@ def jobs(prefix="recent", page=0):
     elif prefix == "unfinished":
         desc = "All unfinished jobs."
         query = session.query(Job).join(Job.source).filter(
-            Job.finished_at == None,
+            Job.failed.is_(None),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),
@@ -294,6 +297,7 @@ def jobs(prefix="recent", page=0):
             ~Job.depedencies.any(),
             Job.assigned_at == None,
             Job.finished_at == None,
+            Job.failed.is_(None),
         ).order_by(
             Check.build.desc(),
             Source.uploaded_at.asc(),
