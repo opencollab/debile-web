@@ -11,7 +11,7 @@
                 <a href='{{info.group_link}}'>{{info.group.name}}</a>
             </td>
             <td>
-                {% for gs in info.group.suites %}
+                {% for gs in info.group.group_suites %}
                     {{gs.suite.name}}
                 {% endfor %}
             </td>

@@ -25,12 +25,12 @@
         <div class='desc_line'>
             <div class='desc_key'>Suites:</div>
             <div class='desc_value'>
-            {% for gs in group.suites %}
+            {% for gs in group.group_suites %}
                 {{gs.suite.name}}
             {% endfor %}
             </div>
         </div>
-        {% for gs in group.suites %}
+        {% for gs in group.group_suites %}
             <div class='desc_line'>
                 <div class='desc_key'>{{gs.suite.name}} Components</div>
                 <div class='desc_value'>
