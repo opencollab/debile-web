@@ -98,7 +98,7 @@ def index():
     info['queued_sources'] = session.query(Source).filter(
         Source.jobs.any(
             ~Job.depedencies.any() &
-            (Job.externally_blocked == False) &
+            (Job.dose_report == None) &
             (Job.assigned_at == None) &
             (Job.finished_at == None) &
             Job.failed.is_(None)
@@ -107,7 +107,7 @@ def index():
     info['unbuilt_sources'] = session.query(Source).filter(
         Source.jobs.any(
             Job.check.has(Check.build == True) &
-            (Job.built_binary == None)
+            ~Job.built_binaries.any()
         ),
     ).count()
     info['failed_sources'] = session.query(Source).filter(
@@ -119,14 +119,14 @@ def index():
     ).count()
     info['queued_jobs'] = session.query(Job).filter(
         ~Job.depedencies.any(),
-        Job.externally_blocked == False,
+        Job.dose_report == None,
         Job.assigned_at == None,
         Job.finished_at == None,
         Job.failed.is_(None),
     ).count()
     info['unbuilt_jobs'] = session.query(Job).filter(
         Job.check.has(Check.build == True),
-        Job.built_binary == None,
+        ~Job.built_binaries.any(),
     ).count()
     info['failed_jobs'] = session.query(Job).filter(
         Job.failed.is_(True),
@@ -196,7 +196,7 @@ def sources(search="", prefix="recent", page=0):
         query = session.query(Source).filter(
             Source.jobs.any(
                 ~Job.depedencies.any() &
-                (Job.externally_blocked == False) &
+                (Job.dose_report == None) &
                 (Job.assigned_at == None) &
                 (Job.finished_at == None) &
                 Job.failed.is_(None)
@@ -210,7 +210,7 @@ def sources(search="", prefix="recent", page=0):
         query = session.query(Source).filter(
             Source.jobs.any(
                 Job.check.has(Check.build == True) &
-                (Job.built_binary == None)
+                ~Job.built_binaries.any()
             ),
         ).order_by(
             Source.name.asc(),
@@ -293,12 +293,13 @@ def jobs(prefix="recent", page=0):
     elif prefix == "queued":
         desc = "All jobs in the queue."
         query = session.query(Job).join(Job.source).join(Job.check).filter(
-            Job.externally_blocked == False,
+            Job.dose_report == None,
             ~Job.depedencies.any(),
             Job.assigned_at == None,
             Job.finished_at == None,
             Job.failed.is_(None),
         ).order_by(
+            Job.assigned_count.asc(),
             Check.build.desc(),
             Source.uploaded_at.asc(),
         )
@@ -306,7 +307,7 @@ def jobs(prefix="recent", page=0):
         desc = "All unbuilt build jobs."
         query = session.query(Job).join(Job.source).filter(
             Job.check.has(Check.build == True),
-            Job.built_binary == None,
+            ~Job.built_binaries.any(),
         ).order_by(
             Source.name.asc(),
             Source.uploaded_at.desc(),

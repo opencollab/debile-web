@@ -50,10 +50,6 @@
             <div class='desc_key'>Architecture</div>
             <div class='desc_value'>{{job.arch.name}}</div>
         </div>
-        <div class='desc_line'>
-            <div class='desc_key'>Arch affinity</div>
-            <div class='desc_value'>{{job.affinity.name}}</div>
-        </div>
         {% if job.builder %}
             <div class='desc_line'>
                 <div class='desc_key'>Builder</div>
@@ -105,7 +101,7 @@
                     {% endif %}
                 {% elif job.assigned_at %}
                     ⧖ Building
-                {% elif job.externally_blocked or job.depedencies %}
+                {% elif job.dose_report or job.depedencies %}
                     ∞ Dep-Wait
                 {% else %}
                     ⌚ Needs-Build
@@ -146,21 +142,23 @@
     </div>
     {% endfor %}
 
-    {% if job.built_binary %}
+    {% if job.built_binaries %}
     <div class='block'>
         <h3>Binary packages</h3>
-        <div class='desc_line'>
-            <div class='desc_key'>Uploaded</div>
-            <div class='desc_value'>{{job.built_binary.uploaded_at|ago}}</div>
-        </div>
-        <div class='desc_line'>
-            <div class='desc_key'>Binary packages</div>
-            <div class='desc_value'>
-                {% for deb in job.built_binary.debs %}
-                    <a href='{{deb.url}}'>{{deb.filename}}</a><br />
-                {% endfor %}
+        {% for binary in job.built_binaries %}
+            <div class='desc_line'>
+                <div class='desc_key'>Uploaded</div>
+                <div class='desc_value'>{{binary.uploaded_at|ago}}</div>
             </div>
-        </div>
+            <div class='desc_line'>
+                <div class='desc_key'>Binary packages</div>
+                <div class='desc_value'>
+                    {% for deb in jbinary.debs %}
+                        <a href='{{deb.url}}'>{{deb.filename}}</a><br />
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
     </div>
     {% endif %}
 

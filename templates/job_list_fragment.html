@@ -45,7 +45,7 @@
                             ⧖ Upload Pending
                         {% elif info.job.failed %}
                             ✗ Failed
-                        {% elif not info.job.built_binary %}
+                        {% elif not info.job.built_binaries %}
                             ⧖ Upload Pending
                         {% else %}
                             ✓ Uploaded
@@ -62,7 +62,7 @@
                     {% endif %}
                 {% elif info.job.assigned_at %}
                     ⧖ Building
-                {% elif info.job.externally_blocked or info.job.depedencies %}
+                {% elif info.job.dose_report or info.job.depedencies %}
                     ∞ Dep-Wait
                 {% else %}
                     ⌚ Needs-Build

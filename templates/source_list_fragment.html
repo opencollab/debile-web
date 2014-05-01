@@ -34,14 +34,14 @@
                             ⧖
                         {% elif job.failed %}
                             ✗
-                        {% elif job.check.build and not job.built_binary %}
+                        {% elif job.check.build and not info.job.built_binaries %}
                             ⧖
                         {% else %}
                             ✓
                         {% endif %}
                     {% elif job.assigned_at %}
                         ⧖
-                    {% elif job.externally_blocked or job.depedencies %}
+                    {% elif job.dose_report or job.depedencies %}
                         ∞
                     {% else %}
                         ⌚
