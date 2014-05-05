@@ -34,7 +34,7 @@
                             ⧖
                         {% elif job.failed %}
                             ✗
-                        {% elif job.check.build and not info.job.built_binaries %}
+                        {% elif job.check.build and not job.built_binaries %}
                             ⧖
                         {% else %}
                             ✓
