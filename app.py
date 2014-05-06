@@ -19,15 +19,14 @@
 # DEALINGS IN THE SOFTWARE.
 
 from flask import Flask
+from debile.master.utils import init_master
 from debileweb.blueprints.frontend import frontend
 
-from debile.master.utils import init_master
-
-app = Flask(__name__)
+app = Flask("debile-web")
 app.config.from_object('config')
 app.register_blueprint(frontend)
 
 
 if __name__ == '__main__':
-    init_master()
+    init_master(fedmsg=False)
     app.run(debug=False)

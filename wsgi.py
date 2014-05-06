@@ -18,11 +18,11 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-from app import app
+from flask import Flask
 from debile.master.utils import init_master
+from debileweb.blueprints.frontend import frontend
 
-# needs to be called unconditionally
-init_master()
-
-if __name__ == "__main__":
-    app.run()
+app = Flask("debile-web")
+app.config.from_object('config')
+app.register_blueprint(frontend)
+init_master(fedmsg=False)
