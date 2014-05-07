@@ -108,6 +108,21 @@
                 {% endif %}
             </div>
         </div>
+        {% if job.dose_report or deps_info %}
+            <div class='desc_line'>
+                <div class='desc_key'>Dep-Wait Reason</div>
+                <div class='desc_value'>
+                    {% if job.dose_report %}
+                        {{job.dose_report}}<br />
+                    {% endif %}
+                    {% for info in deps_info %}
+                        Waiting for
+                        <a href='{{info.source_link}}'>{{info.job.source.name}}/&#x200B;{{info.job.source.version}}</a>
+                        <a href='{{info.job_link}}'>{{info.job.name}}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
     </div>
 
     {% for info in results_info %}

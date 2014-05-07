@@ -640,6 +640,16 @@ def job(job_id, group_name="", package_name="", package_version="", version=""):
         info['job_runtime'] = '%dh %02dm %02ds' % \
             (hours, minutes, seconds)
 
+    deps_info = []
+    for dep in job.depedencies:
+        depinfo = {}
+        depinfo['job'] = dep
+        depinfo['job_link'] = "/job/%s/%s/%s/%s" % \
+            (dep.group.name, dep.source.name, dep.source.version, dep.id)
+        depinfo['source_link'] = "/source/%s/%s/%s" % \
+            (dep.group.name, dep.source.name, dep.source.version)
+        deps_info.append(depinfo)
+
     results_info = []
     for result in job.results:
         try:
@@ -665,6 +675,7 @@ def job(job_id, group_name="", package_name="", package_version="", version=""):
     return render_template('job.html', **{
         "job": job,
         "info": info,
+        "deps_info": deps_info,
         "results_info": results_info,
     })
 
