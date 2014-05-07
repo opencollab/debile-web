@@ -30,32 +30,42 @@
             {% endfor %}
             </div>
         </div>
-        {% for gs in group.group_suites %}
-            <div class='desc_line'>
-                <div class='desc_key'>{{gs.suite.name}} Components</div>
-                <div class='desc_value'>
+        <div class='desc_line'>
+            <div class='desc_key'>Components</div>
+            <div class='desc_value'>
+                {% for gs in group.group_suites %}
+                    <b>{{gs.suite.name}}:</b>
                     {% for component in gs.components %}
                         {{component.name}}
                     {% endfor %}
-                </div>
+                    <br />
+                {% endfor %}
             </div>
-            <div class='desc_line'>
-                <div class='desc_key'>{{gs.suite.name}} Architectures</div>
-                <div class='desc_value'>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Architectures</div>
+            <div class='desc_value'>
+                {% for gs in group.group_suites %}
+                    <b>{{gs.suite.name}}:</b>
                     {% for arch in gs.arches %}
                         {{arch.name}}
                     {% endfor %}
-                </div>
+                    <br />
+                {% endfor %}
             </div>
-            <div class='desc_line'>
-                <div class='desc_key'>{{gs.suite.name}} Checks</div>
-                <div class='desc_value'>
+        </div>
+        <div class='desc_line'>
+            <div class='desc_key'>Checks</div>
+            <div class='desc_value'>
+                {% for gs in group.group_suites %}
+                    <b>{{gs.suite.name}}:</b>
                     {% for check in gs.checks %}
                         {{check.name}}
                     {% endfor %}
-                </div>
+                    <br />
+                {% endfor %}
             </div>
-        {% endfor %}
+        </div>
     </div>
 
     <div class='block'>
