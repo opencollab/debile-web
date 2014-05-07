@@ -625,6 +625,7 @@ def job(job_id, group_name="", package_name="", package_version="", version=""):
     job = session.query(Job).get(job_id)
 
     info = {}
+    info['group_link'] = "/group/%s" % job.group.name
     info['source_link'] = '/source/%s/%s/%s' % \
         (job.group.name, job.source.name, job.source.version)
     info['binary_link'] = '/job/%s/%s/%s/%d' % \
