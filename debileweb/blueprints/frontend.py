@@ -134,6 +134,9 @@ def index():
 
     form = SearchPackageForm()
 
+    session.rollback()
+    session.close()
+
     return render_template('index.html', **{
         "groups_info": groups_info,
         "builders_info": builders_info,
@@ -151,13 +154,13 @@ def index():
 @frontend.route("/sources/<prefix>/")
 @frontend.route("/sources/<prefix>/<page>/")
 def sources(search="", prefix="recent", page=0):
-    page = int(page)
-    session = Session()
-
     if request.path == "/maintainer/search/":
         return redirect('/maintainer/' + request.form['maintainer'] + '/')
     if request.path == "/source/search/":
         return redirect('/source/' + request.form['source'] + '/')
+
+    page = int(page)
+    session = Session()
 
     if request.path.startswith("/maintainer/"):
         desc = "Search results for maintainer '%s'" % search
@@ -262,6 +265,9 @@ def sources(search="", prefix="recent", page=0):
     info['next_link'] = "/sources/%s/%d" % (prefix, page+1) \
         if source_count > (page+1) * ENTRIES_PER_LIST_PAGE else None
 
+    session.rollback()
+    session.close()
+
     return render_template('sources.html', **{
         "info": info,
         "sources_info": sources_info,
@@ -365,6 +371,9 @@ def jobs(prefix="recent", page=0):
     info['next_link'] = "/jobs/%s/%d" % (prefix, page+1) \
         if job_count > (page+1) * ENTRIES_PER_LIST_PAGE else None
 
+    session.rollback()
+    session.close()
+
     return render_template('jobs.html', **{
         "info": info,
         "jobs_info": jobs_info,
@@ -405,6 +414,9 @@ def group(name, page=0):
         if page > 0 else None
     info['next_link'] = "/group/%s/%d" % (group.name, page+1) \
         if source_count > (page+1) * ENTRIES_PER_PAGE else None
+
+    session.rollback()
+    session.close()
 
     return render_template('group.html', **{
         "group": group,
@@ -449,6 +461,9 @@ def builder(name, page=0):
         if page > 0 else None
     info['next_link'] = "/builder/%s/%d" % (builder.name, page+1) \
         if job_count > (page+1) * ENTRIES_PER_PAGE else None
+
+    session.rollback()
+    session.close()
 
     return render_template('builder.html', **{
         "builder": builder,
@@ -534,6 +549,9 @@ def user(email, page=0):
     info['next_link'] = "/user/%s/%d" % (user.email, page+1) \
         if source_count > (page+1) * ENTRIES_PER_PAGE else None
 
+    session.rollback()
+    session.close()
+
     return render_template('user.html', **{
         "user": user,
         "info": info,
@@ -608,6 +626,9 @@ def source(group_name, package_name, suite_or_version):
     info['group_link'] = "/group/%s" % source.group.name
     info['uploader_link'] = "/user/%s" % source.uploader.email
 
+    session.rollback()
+    session.close()
+
     return render_template('source.html', **{
         "source": source,
         "info": info,
@@ -673,6 +694,9 @@ def job(job_id, group_name="", package_name="", package_version="", version=""):
         except OSError:
             pass
 
+    session.rollback()
+    session.close()
+
     return render_template('job.html', **{
         "job": job,
         "info": info,
@@ -685,6 +709,7 @@ def job(job_id, group_name="", package_name="", package_version="", version=""):
 def search_source():
     search = request.args.get('search[term]')
     session = Session()
+
     query = session.query(
         Source.name,
     ).filter(
@@ -693,6 +718,10 @@ def search_source():
         Source.name,
     ).limit(10).all()
     result = [r[0] for r in query]
+
+    session.rollback()
+    session.close()
+
     return jsonify(result)
 
 
@@ -700,6 +729,7 @@ def search_source():
 def search_maintainer():
     search = request.args.get('search[term]')
     session = Session()
+
     query = session.query(
         Maintainer.name,
         Maintainer.email,
@@ -711,6 +741,10 @@ def search_maintainer():
         Maintainer.email,
     ).limit(10).all()
     result = [r[0] if r[0].startswith(search) else r[1] for r in query]
+
+    session.rollback()
+    session.close()
+
     return jsonify(result)
 
 
