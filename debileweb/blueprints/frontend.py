@@ -24,10 +24,11 @@
 from flask import Blueprint, render_template, request, redirect
 from flask.ext.jsonpify import jsonify
 from debian.debian_support import Version
+from sqlalchemy.sql import func, select, asc
 
 from debile.master.utils import Session
-from debile.master.orm import (Person, Builder, Suite, Check,
-                               Group, GroupSuite, Source, Maintainer, Job)
+from debile.master.orm import (Person, Builder, Suite, Check, Group, GroupSuite,
+                               Source, Maintainer, Job, job_dependencies)
 
 from debileweb.blueprints.forms import SearchPackageForm
 from debileweb.blueprints.consts import PREFIXES, ENTRIES_PER_PAGE, ENTRIES_PER_LIST_PAGE
@@ -217,8 +218,18 @@ def sources(search="", prefix="recent", page=0):
                     Job.failed.is_(None)
                 ),
             ).order_by(
-                Source.name.asc(),
-                Source.uploaded_at.desc(),
+                asc(select([func.min(
+                        Job.assigned_count - select([func.count(1)]).where(job_dependencies.c.blocking_job_id == Job.id) +
+                        4 * Suite.name.in_(["staging", "sid", "experimental"]) - 8 * Check.build
+                    )]).where(
+                        (Job.source_id == Source.id) &
+                        ~Job.depedencies.any() &
+                        (Job.dose_report == None) &
+                        (Job.assigned_at == None) &
+                        (Job.finished_at == None) &
+                        Job.failed.is_(None)
+                    )),
+                Source.uploaded_at.asc(),
             )
         elif prefix == "unbuilt":
             desc = "All source packages with unbuilt build jobs."
@@ -307,15 +318,15 @@ def jobs(prefix="recent", page=0):
             )
         elif prefix == "queued":
             desc = "All jobs in the queue."
-            query = session.query(Job).join(Job.source).join(Job.check).filter(
+            query = session.query(Job).join(Job.check).join(Job.source).join(Source.group_suite).join(GroupSuite.suite).filter(
                 Job.dose_report == None,
                 ~Job.depedencies.any(),
                 Job.assigned_at == None,
                 Job.finished_at == None,
                 Job.failed.is_(None),
             ).order_by(
-                Job.assigned_count.asc(),
-                Check.build.desc(),
+                asc(Job.assigned_count - select([func.count(1)]).where(job_dependencies.c.blocking_job_id == Job.id) +
+                    4 * Suite.name.in_(["staging", "sid", "experimental"]) - 8 * Check.build),
                 Source.uploaded_at.asc(),
             )
         elif prefix == "unbuilt":
