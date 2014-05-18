@@ -24,7 +24,7 @@
 from flask import Blueprint, render_template, request, redirect
 from flask.ext.jsonpify import jsonify
 from debian.debian_support import Version
-from sqlalchemy.sql import func, select, asc
+from sqlalchemy.sql import func, select, asc, case
 
 from debile.master.utils import Session
 from debile.master.orm import (Person, Builder, Suite, Check, Group, GroupSuite,
@@ -220,7 +220,7 @@ def sources(search="", prefix="recent", page=0):
             ).order_by(
                 asc(select([func.min(
                         Job.assigned_count - select([func.count(1)]).where(job_dependencies.c.blocking_job_id == Job.id) +
-                        4 * Suite.name.in_(["staging", "sid", "experimental"]) - 8 * Check.build
+                        case([(Suite.name.in_(["staging", "sid", "experimental"]), 4)], else_=0) - case([(Check.build, 8)], else_=0)
                     )]).where(
                         (Job.source_id == Source.id) &
                         ~Job.depedencies.any() &
@@ -326,7 +326,7 @@ def jobs(prefix="recent", page=0):
                 Job.failed.is_(None),
             ).order_by(
                 asc(Job.assigned_count - select([func.count(1)]).where(job_dependencies.c.blocking_job_id == Job.id) +
-                    4 * Suite.name.in_(["staging", "sid", "experimental"]) - 8 * Check.build),
+                    case([(Suite.name.in_(["staging", "sid", "experimental"]), 4)], else_=0) - case([(Check.build, 8)], else_=0)),
                 Source.uploaded_at.asc(),
             )
         elif prefix == "unbuilt":
