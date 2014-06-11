@@ -11,6 +11,10 @@
             {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
         </div>
         {% include "job_list_fragment.html" %}
+        <div>
+            {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
+            {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
+        </div>
     </div>
 
 {% endblock %}

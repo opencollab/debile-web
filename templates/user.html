@@ -44,10 +44,16 @@
 
     <div class='block'>
         <h3>Sources Uploaded by {{user.name}}</h3>
-        {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
-        {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
+        <div>
+            {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
+            {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
+        </div>
         <div class = 'clear' ></div>
         {% include "source_list_fragment.html" %}
+        <div>
+            {% if info.prev_link %}<a class='left' href='{{info.prev_link}}'>previous page</a>{% endif %}
+            {% if info.next_link %}<a class='right' href='{{info.next_link}}'>next page</a>{% endif %}
+        </div>
     </div>
     
 {% endblock %}
