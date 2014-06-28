@@ -28,28 +28,28 @@
                 {% endif %}
             </td>
             <td>
-                {% for job in info.source.jobs %}
-                 <ul class="status">
+              {% for job in info.source.jobs %}
                     {% if job.finished_at %}
                         {% if job.failed == None %}
-                            <li title="Pending">⧖</li>
+                            <span title="Building">⧖</span>
                         {% elif job.failed %}
-                            <li title="Failed">✗</li>
+                            <span title="Failed">✗</span>
                         {% elif job.check.build and not job.built_binaries %}
-                            <li title="Pending">⧖</li>
+                            <span title="Building">⧖</span>
                         {% else %}
-                            <li>✓</li>
+                            <span>✓</span>
                         {% endif %}
                     {% elif job.assigned_at %}
-                        <li title="Pending">⧖</li>
+                        <span title="Pending">⧖</span>
                     {% elif job.dose_report or job.depedencies %}
-                        <li title="Dep-Wait">∞</li>
+                        <span title="Dep-Wait">∞</span>
                     {% else %}
-                        <li>⌚</li>
+                        <span title="Needs-Build">⌚</span>
                     {% endif %}
+
+
                 {% endfor %}
-                </ul>
-            </td>
+                </tr>
         </tr>
 {% endfor %}
 
