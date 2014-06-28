@@ -218,9 +218,9 @@ def sources(search="", prefix="recent", page=0):
                     Job.failed.is_(None)
                 ),
             ).order_by(
-                asc(select([func.min(
-                        Job.assigned_count - select([func.count(1)]).where(job_dependencies.c.blocking_job_id == Job.id)
-                    )]).where(
+                asc(select(
+                        [func.min(Job.assigned_count)]
+                    ).where(
                         (Job.source_id == Source.id) &
                         ~Job.depedencies.any() &
                         (Job.dose_report == None) &
@@ -324,7 +324,7 @@ def jobs(prefix="recent", page=0):
                 Job.finished_at == None,
                 Job.failed.is_(None),
             ).order_by(
-                asc(Job.assigned_count - select([func.count(1)]).where(job_dependencies.c.blocking_job_id == Job.id)),
+                Job.assigned_count.asc(),
                 Source.uploaded_at.asc(),
             )
         elif prefix == "unbuilt":
