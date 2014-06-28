@@ -29,24 +29,26 @@
             </td>
             <td>
                 {% for job in info.source.jobs %}
+                 <ul class="status">
                     {% if job.finished_at %}
                         {% if job.failed == None %}
-                            ⧖
+                            <li title="Pending">⧖</li>
                         {% elif job.failed %}
-                            ✗
+                            <li title="Failed">✗</li>
                         {% elif job.check.build and not job.built_binaries %}
-                            ⧖
+                            <li title="Pending">⧖</li>
                         {% else %}
-                            ✓
+                            <li>✓</li>
                         {% endif %}
                     {% elif job.assigned_at %}
-                        ⧖
+                        <li title="Pending">⧖</li>
                     {% elif job.dose_report or job.depedencies %}
-                        ∞
+                        <li title="Dep-Wait">∞</li>
                     {% else %}
-                        ⌚
+                        <li>⌚</li>
                     {% endif %}
                 {% endfor %}
+                </ul>
             </td>
         </tr>
 {% endfor %}
