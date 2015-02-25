@@ -122,8 +122,8 @@ def index():
         ).count()
         info['unbuilt_sources'] = session.query(Source).filter(
             Source.jobs.any(
-                Job.check.has(Check.build is True)
-                & ~Job.built_binaries.any()
+                Job.check.has(Check.build is True) &
+                ~Job.built_binaries.any()
             ),
         ).count()
         info['failed_sources'] = session.query(Source).filter(
@@ -220,22 +220,23 @@ def sources(search="", prefix="recent", page=0):
             ).order_by(
                 asc(select(
                     [func.min(Job.assigned_count)]
-                    ).where(
-                        (Job.source_id == Source.id)
-                        & ~Job.depedencies.any()
-                        & (Job.dose_report is None)
-                        & (Job.assigned_at is None)
-                        & (Job.finished_at is None)
-                        & Job.failed.is_(None)
-                    )),
+                ).where(
+                    (Job.source_id == Source.id) &
+                    ~Job.depedencies.any() &
+                    (Job.dose_report is None) &
+                    (Job.assigned_at is None) &
+                    (Job.finished_at is None) &
+                    Job.failed.is_(None)
+                )
+                ),
                 Source.uploaded_at.asc(),
             )
         elif prefix == "unbuilt":
             desc = "All source packages with unbuilt build jobs."
             query = session.query(Source).filter(
                 Source.jobs.any(
-                    Job.check.has(Check.build is True)
-                    & ~Job.built_binaries.any()
+                    Job.check.has(Check.build is True) &
+                    ~Job.built_binaries.any()
                 ),
             ).order_by(
                 Source.name.asc(),
@@ -282,10 +283,10 @@ def sources(search="", prefix="recent", page=0):
 
         info = {}
         info['desc'] = desc
-        info['prev_link'] = "/sources/%s/%d" % (prefix, page-1) \
+        info['prev_link'] = "/sources/%s/%d" % (prefix, page - 1) \
             if page > 0 else None
-        info['next_link'] = "/sources/%s/%d" % (prefix, page+1) \
-            if source_count > (page+1) * ENTRIES_PER_LIST_PAGE else None
+        info['next_link'] = "/sources/%s/%d" % (prefix, page + 1) \
+            if source_count > (page + 1) * ENTRIES_PER_LIST_PAGE else None
 
         return render_template('sources.html', **{
             "info": info,
@@ -384,10 +385,10 @@ def jobs(prefix="recent", page=0):
 
         info = {}
         info['desc'] = desc
-        info['prev_link'] = "/jobs/%s/%d" % (prefix, page-1) \
+        info['prev_link'] = "/jobs/%s/%d" % (prefix, page - 1) \
             if page > 0 else None
-        info['next_link'] = "/jobs/%s/%d" % (prefix, page+1) \
-            if job_count > (page+1) * ENTRIES_PER_LIST_PAGE else None
+        info['next_link'] = "/jobs/%s/%d" % (prefix, page + 1) \
+            if job_count > (page + 1) * ENTRIES_PER_LIST_PAGE else None
 
         return render_template('jobs.html', **{
             "info": info,
@@ -425,10 +426,10 @@ def group(name, page=0):
 
         info = {}
         info['maintainer_link'] = "/user/%s" % group.maintainer.email
-        info['prev_link'] = "/group/%s/%d" % (group.name, page-1) \
+        info['prev_link'] = "/group/%s/%d" % (group.name, page - 1) \
             if page > 0 else None
-        info['next_link'] = "/group/%s/%d" % (group.name, page+1) \
-            if source_count > (page+1) * ENTRIES_PER_PAGE else None
+        info['next_link'] = "/group/%s/%d" % (group.name, page + 1) \
+            if source_count > (page + 1) * ENTRIES_PER_PAGE else None
 
         return render_template('group.html', **{
             "group": group,
@@ -469,10 +470,10 @@ def builder(name, page=0):
 
         info = {}
         info['maintainer_link'] = "/user/%s" % builder.maintainer.email
-        info['prev_link'] = "/builder/%s/%d" % (builder.name, page-1) \
+        info['prev_link'] = "/builder/%s/%d" % (builder.name, page - 1) \
             if page > 0 else None
-        info['next_link'] = "/builder/%s/%d" % (builder.name, page+1) \
-            if job_count > (page+1) * ENTRIES_PER_PAGE else None
+        info['next_link'] = "/builder/%s/%d" % (builder.name, page + 1) \
+            if job_count > (page + 1) * ENTRIES_PER_PAGE else None
 
         return render_template('builder.html', **{
             "builder": builder,
@@ -553,10 +554,10 @@ def user(email, page=0):
             sources_info.append(info)
 
         info = {}
-        info['prev_link'] = "/user/%s/%d" % (user.email, page-1) \
+        info['prev_link'] = "/user/%s/%d" % (user.email, page - 1) \
             if page > 0 else None
-        info['next_link'] = "/user/%s/%d" % (user.email, page+1) \
-            if source_count > (page+1) * ENTRIES_PER_PAGE else None
+        info['next_link'] = "/user/%s/%d" % (user.email, page + 1) \
+            if source_count > (page + 1) * ENTRIES_PER_PAGE else None
 
         return render_template('user.html', **{
             "user": user,
