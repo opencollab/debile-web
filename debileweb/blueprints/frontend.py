@@ -122,8 +122,8 @@ def index():
         ).count()
         info['unbuilt_sources'] = session.query(Source).filter(
             Source.jobs.any(
-                Job.check.has(Check.build is True) &
-                ~Job.built_binaries.any()
+                Job.check.has(Check.build is True)
+                & ~Job.built_binaries.any()
             ),
         ).count()
         info['failed_sources'] = session.query(Source).filter(
@@ -221,12 +221,12 @@ def sources(search="", prefix="recent", page=0):
                 asc(select(
                     [func.min(Job.assigned_count)]
                     ).where(
-                        (Job.source_id == Source.id) &
-                        ~Job.depedencies.any() &
-                        (Job.dose_report is None) &
-                        (Job.assigned_at is None) &
-                        (Job.finished_at is None) &
-                        Job.failed.is_(None)
+                        (Job.source_id == Source.id)
+                        & ~Job.depedencies.any()
+                        & (Job.dose_report is None)
+                        & (Job.assigned_at is None)
+                        & (Job.finished_at is None)
+                        & Job.failed.is_(None)
                     )),
                 Source.uploaded_at.asc(),
             )
@@ -234,8 +234,8 @@ def sources(search="", prefix="recent", page=0):
             desc = "All source packages with unbuilt build jobs."
             query = session.query(Source).filter(
                 Source.jobs.any(
-                    Job.check.has(Check.build is True) &
-                    ~Job.built_binaries.any()
+                    Job.check.has(Check.build is True)
+                    & ~Job.built_binaries.any()
                 ),
             ).order_by(
                 Source.name.asc(),
