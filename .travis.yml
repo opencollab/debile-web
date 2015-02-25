@@ -12,5 +12,5 @@ install:
 # command to run tests
 script:
 # - coverage run --source=. $(which nosetests)
- - flake8 debileweb/ --max-line-length=200
+ - flake8 debileweb/
 after_success: coveralls
