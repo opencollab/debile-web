@@ -12,7 +12,7 @@ Must be installed after debile-master
 
 (debile)
 * Fetch the repo of debile-web
-    cd ~ && git clone git://git.debian.org/git/pkg-debile/debile-web.git
+    cd ~ && git clone https://github.com/opencollab/debile-web.git
 
 (debile) virtualenv=debile
 * Install debile-web dependancies
