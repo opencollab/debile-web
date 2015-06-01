@@ -89,8 +89,8 @@ def index():
             info['builder_link'] = "/builder/%s" % builder.name
             info['maintainer_link'] = "/user/%s" % builder.maintainer.email
             jobs = session.query(Job).filter(
-                Job.assigned_at is not None,
-                Job.finished_at is None,
+                Job.assigned_at != None,
+                Job.finished_at == None,
                 Job.builder == builder,
             ).order_by(
                 Job.assigned_at.desc(),
@@ -114,15 +114,15 @@ def index():
         info['queued_sources'] = session.query(Source).filter(
             Source.jobs.any(
                 ~Job.depedencies.any() &
-                (Job.dose_report is None) &
-                (Job.assigned_at is None) &
-                (Job.finished_at is None) &
+                (Job.dose_report == None) &
+                (Job.assigned_at == None) &
+                (Job.finished_at == None) &
                 Job.failed.is_(None)
             ),
         ).count()
         info['unbuilt_sources'] = session.query(Source).filter(
             Source.jobs.any(
-                Job.check.has(Check.build is True) &
+                Job.check.has(Check.build == True) &
                 ~Job.built_binaries.any()
             ),
         ).count()
@@ -135,13 +135,13 @@ def index():
         ).count()
         info['queued_jobs'] = session.query(Job).filter(
             ~Job.depedencies.any(),
-            Job.dose_report is None,
-            Job.assigned_at is None,
-            Job.finished_at is None,
+            Job.dose_report == None,
+            Job.assigned_at == None,
+            Job.finished_at == None,
             Job.failed.is_(None),
         ).count()
         info['unbuilt_jobs'] = session.query(Job).filter(
-            Job.check.has(Check.build is True),
+            Job.check.has(Check.build == True),
             ~Job.built_binaries.any(),
         ).count()
         info['failed_jobs'] = session.query(Job).filter(
@@ -212,9 +212,9 @@ def sources(search="", prefix="recent", page=0):
             query = session.query(Source).filter(
                 Source.jobs.any(
                     ~Job.depedencies.any() &
-                    (Job.dose_report is None) &
-                    (Job.assigned_at is None) &
-                    (Job.finished_at is None) &
+                    (Job.dose_report == None) &
+                    (Job.assigned_at == None) &
+                    (Job.finished_at == None) &
                     Job.failed.is_(None)
                 ),
             ).order_by(
@@ -223,9 +223,9 @@ def sources(search="", prefix="recent", page=0):
                 ).where(
                     (Job.source_id == Source.id) &
                     ~Job.depedencies.any() &
-                    (Job.dose_report is None) &
-                    (Job.assigned_at is None) &
-                    (Job.finished_at is None) &
+                    (Job.dose_report == None) &
+                    (Job.assigned_at == None) &
+                    (Job.finished_at == None) &
                     Job.failed.is_(None)
                 )
                 ),
@@ -235,7 +235,7 @@ def sources(search="", prefix="recent", page=0):
             desc = "All source packages with unbuilt build jobs."
             query = session.query(Source).filter(
                 Source.jobs.any(
-                    Job.check.has(Check.build is True) &
+                    Job.check.has(Check.build == True) &
                     ~Job.built_binaries.any()
                 ),
             ).order_by(
@@ -319,10 +319,10 @@ def jobs(prefix="recent", page=0):
         elif prefix == "queued":
             desc = "All jobs in the queue."
             query = session.query(Job).join(Job.check).join(Job.source).join(Source.group_suite).join(GroupSuite.suite).filter(
-                Job.dose_report is None,
+                Job.dose_report == None,
                 ~Job.depedencies.any(),
-                Job.assigned_at is None,
-                Job.finished_at is None,
+                Job.assigned_at == None,
+                Job.finished_at == None,
                 Job.failed.is_(None),
             ).order_by(
                 Job.assigned_count.asc(),
@@ -331,7 +331,7 @@ def jobs(prefix="recent", page=0):
         elif prefix == "unbuilt":
             desc = "All unbuilt build jobs."
             query = session.query(Job).join(Job.source).filter(
-                Job.check.has(Check.build is True),
+                Job.check.has(Check.build == True),
                 ~Job.built_binaries.any(),
             ).order_by(
                 Source.name.asc(),
@@ -526,8 +526,8 @@ def user(email, page=0):
             info['builder'] = builder
             info['builder_link'] = "/builder/%s" % builder.name
             jobs = session.query(Job).filter(
-                Job.assigned_at is not None,
-                Job.finished_at is None,
+                Job.assigned_at != None,
+                Job.finished_at == None,
                 Job.builder == builder,
             ).order_by(
                 Job.assigned_at.desc(),
